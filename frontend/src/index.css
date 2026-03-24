@@ -1,0 +1,111 @@
+/* ===============================
+   RESET + BASE
+=============================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+/* ===============================
+   BODY STYLING
+=============================== */
+body {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: #eef5ff;
+  color: #0f1c3d;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===============================
+   SCROLLBAR (OPTIONAL PREMIUM)
+=============================== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(47, 102, 255, 0.3);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(47, 102, 255, 0.5);
+}
+
+/* ===============================
+   LINKS
+=============================== */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ===============================
+   LIST RESET
+=============================== */
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+/* ===============================
+   BUTTON RESET
+=============================== */
+button {
+  font-family: inherit;
+}
+
+/* ===============================
+   UTILITY CLASSES
+=============================== */
+.text-center {
+  text-align: center;
+}
+
+.mt-10 {
+  margin-top: 10px;
+}
+
+.mt-20 {
+  margin-top: 20px;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.gap-10 {
+  gap: 10px;
+}
+
+.gap-14 {
+  gap: 14px;
+}
+
+/* ===============================
+   SMALL ANIMATIONS
+=============================== */
+.fade-in {
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

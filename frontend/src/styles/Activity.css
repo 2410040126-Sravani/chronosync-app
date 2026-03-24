@@ -1,0 +1,119 @@
+.activityCardWrap {
+  padding: 14px 14px 16px;
+  border-radius: 18px;
+}
+
+.activityHeading {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.15;
+  color: #12224a;
+}
+
+.activitySubtext {
+  margin: 0 0 14px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #65708c;
+}
+
+.activityToolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.activityRefreshBtn {
+  height: 28px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 800;
+  box-shadow: 0 6px 14px rgba(47, 102, 255, 0.14);
+}
+
+.activityCount {
+  font-size: 10px;
+  font-weight: 700;
+  color: #7f89a3;
+}
+
+.activityList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.activityItem {
+  background: #ffffff;
+  border: 1px solid #d9e0ee;
+  border-radius: 14px;
+  padding: 10px 12px;
+  box-shadow: 0 2px 8px rgba(16, 34, 72, 0.05);
+}
+
+.activityItemTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 3px;
+}
+
+.activityType {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  color: #10214b;
+}
+
+.activityTime {
+  font-size: 9px;
+  font-weight: 600;
+  color: #7f89a3;
+  white-space: nowrap;
+}
+
+.activityMessage {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: #394766;
+}
+
+.activityEmpty {
+  background: #ffffff;
+  border: 1px solid #d9e0ee;
+  border-radius: 14px;
+  padding: 12px;
+  font-size: 11px;
+  color: #65708c;
+}
+
+.activityMoreWrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.activityMoreBtn {
+  min-width: 120px;
+  height: 34px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  color: white;
+  background: linear-gradient(90deg, var(--accent1), var(--accent2));
+  border: none;
+  box-shadow: 0 10px 20px rgba(47, 102, 255, 0.25);
+  transition: 0.2s;
+}
+
+.activityMoreBtn:hover {
+  transform: translateY(-2px);
+  opacity: 0.95;
+}
+
