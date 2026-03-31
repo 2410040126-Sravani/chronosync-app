@@ -39,6 +39,7 @@ function Login() {
 
       try {
         data = JSON.parse(text);
+        console.log("LOGIN RESPONSE:", data);
       } catch {
         data = text;
       }
@@ -57,6 +58,8 @@ if (!response.ok) {
 }
 
       localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("role", data.user?.role);
       window.location.href = "/customer";
 
     } catch (err) {

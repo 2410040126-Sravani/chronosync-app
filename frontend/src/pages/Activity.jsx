@@ -74,7 +74,7 @@ export default function Activity() {
     id: item?.id ?? `${index}`,
     type: getType(rawText),
 
-    // 🔥 FIX HERE
+    
     message: rawText || item?.meta || item?.type || "No message",
 
     timestamp: getTimestamp(item, rawText),
