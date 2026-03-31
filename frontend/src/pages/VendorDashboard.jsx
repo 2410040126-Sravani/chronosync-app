@@ -17,7 +17,9 @@ function getAuthHeaders() {
 }
 export default function VendorDashboard() {
 const user = JSON.parse(localStorage.getItem("user"));
-const vendorId = user?.id || 1;
+const vendorId = user?.id;
+console.log("User:", user);
+console.log("VendorId:", vendorId);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

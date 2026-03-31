@@ -32,16 +32,21 @@ export default function Manage() {
   const qty = sub?.qty ?? sub?.qtyLitres ?? sub?.quantity ?? 0;
   const status = sub?.status ?? "—";
   const nextDelivery = sub?.nextDelivery ?? sub?.nextDeliveryDate ?? "—";
-  const isPausedActive =
-  nextDelivery && nextDelivery >= today;
-  const endDate = sub?.endDate ?? "—";
-  const effectiveEndDate = sub?.effectiveEndDate ?? sub?.effectiveEndDateISO ?? endDate;
-
-  const pauses =
+ const pauses =
     sub?.pauses ??
     sub?.pauseWindows ??
     sub?.pauseRanges ??
     [];
+  const isPausedActive = pauses.some((p) => {
+  const start = p.startDate || p.pauseStartDate;
+  const end = p.endDate || p.pauseEndDate;
+
+  return start <= today && end >= today;
+});
+  const endDate = sub?.endDate ?? "—";
+  const effectiveEndDate = sub?.effectiveEndDate ?? sub?.effectiveEndDateISO ?? endDate;
+
+ 
     const activePause = pauses.find((p) => {
   const end = p.endDate || p.pauseEndDate;
   return end >= today;
@@ -189,7 +194,7 @@ else setSuggestion(null);
         <div className="glass" style={{ padding: 12, borderRadius: 14 }}>
           <div style={{ fontSize: 12, opacity: 0.7 }}>Status</div>
           <div style={{ fontWeight: 900, fontSize: 18 }}>
-  {isPausedActive ? "PAUSED" : "ACTIVE"}
+  {sub?.status ?? (isPausedActive ? "PAUSED" : "ACTIVE")}
 </div>
 
 <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
