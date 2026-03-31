@@ -18,4 +18,4 @@ RUN mvn clean install -DskipTests
 EXPOSE 8080
 
 # Run backend
-CMD ["java", "-jar", "target/*.jar"]
+CMD ["java", "-jar", "target/chronosync-backend-0.0.1-SNAPSHOT.jar"]
