@@ -1,43 +1,75 @@
-const API_BASE = "http://localhost:8082/api";
+import { API_BASE } from "../config/api";
 
-async function readJsonSafe(res, fallbackMsg) {
-  if (!res.ok) {
-    const txt = await res.text().catch(() => "");
-    throw new Error(txt || fallbackMsg);
-  }
+const authHeaders = () => {
+  const token = localStorage.getItem("token");
+
+  return {
+    "Content-Type": "application/json",
+    Authorization: token ? `Bearer ${token}` : "",
+  };
+};
+
+// ✅ safe reader
+async function readJsonSafe(res, msg) {
   const text = await res.text().catch(() => "");
+
+  if (!res.ok) {
+    console.error("API ERROR:", text);
+    throw new Error(text || msg);
+  }
+
   return text ? JSON.parse(text) : null;
 }
 
-export async function getSubscription(customerId) {
-  const res = await fetch(`${API_BASE}/subscriptions/${customerId}`);
+export async function getSubscription(id) {
+  const res = await fetch(`${API_BASE}/subscriptions/${id}`, {
+    headers: authHeaders(),
+  });
+
   return readJsonSafe(res, "Failed to load subscription");
 }
 
-export async function updateQty(customerId, value) {
+export async function updateQty(id, qty) {
   const res = await fetch(
-    `${API_BASE}/subscriptions/${customerId}/qty?value=${value}`,
-    { method: "PUT" }
+    `${API_BASE}/subscriptions/${id}/qty?value=${qty}`,
+    {
+      method: "PUT",
+      headers: authHeaders(),
+    }
   );
-  return readJsonSafe(res, "Failed to update quantity");
+
+  return readJsonSafe(res, "Qty update failed");
 }
 
-export async function pauseSubscription(customerId, startDate, endDate) {
+export async function pauseSubscription(id, start, end) {
   const res = await fetch(
-    `${API_BASE}/subscriptions/${customerId}/pause?start=${encodeURIComponent(startDate)}&end=${encodeURIComponent(endDate)}`,
-    { method: "PUT" }
-  );
-  return readJsonSafe(res, "Failed to pause subscription");
-}
-
-export async function resumeSubscription(customerId) {
-  const res = await fetch(`${API_BASE}/subscriptions/${customerId}/resume`, {
+  `${API_BASE}/subscriptions/${id}/pause?start=${start}&end=${end}`,
+  {
     method: "PUT",
-  });
-  return readJsonSafe(res, "Failed to resume subscription");
+    headers: authHeaders(),
+  }
+);
+
+  return readJsonSafe(res, "Pause failed");
 }
 
-export async function getPauseSuggestion(customerId) {
-  const res = await fetch(`${API_BASE}/subscriptions/${customerId}/pause-suggestion`);
-  return readJsonSafe(res, "Failed to load pause suggestion");
+export async function resumeSubscription(id) {
+  const res = await fetch(`${API_BASE}/subscriptions/${id}/resume`, {
+    method: "PUT",
+    headers: authHeaders(),
+  });
+
+  return readJsonSafe(res, "Resume failed");
+}
+
+export async function getPauseSuggestion(id) {
+  const res = await fetch(
+    `${API_BASE}/subscriptions/${id}/pause-suggestion`,
+    {
+      headers: authHeaders(),
+    }
+  );
+
+  if (!res.ok) return null;
+  return res.json();
 }

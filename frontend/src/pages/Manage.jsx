@@ -11,7 +11,11 @@ import {
 export default function Manage() {
   const subId = 1; // later we’ll make dropdown (no hardcode)
 
-  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const today = useMemo(() => {
+  const d = new Date();
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 10);
+}, []);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -28,6 +32,8 @@ export default function Manage() {
   const qty = sub?.qty ?? sub?.qtyLitres ?? sub?.quantity ?? 0;
   const status = sub?.status ?? "—";
   const nextDelivery = sub?.nextDelivery ?? sub?.nextDeliveryDate ?? "—";
+  const isPausedActive =
+  nextDelivery && nextDelivery >= today;
   const endDate = sub?.endDate ?? "—";
   const effectiveEndDate = sub?.effectiveEndDate ?? sub?.effectiveEndDateISO ?? endDate;
 
@@ -36,6 +42,10 @@ export default function Manage() {
     sub?.pauseWindows ??
     sub?.pauseRanges ??
     [];
+    const activePause = pauses.find((p) => {
+  const end = p.endDate || p.pauseEndDate;
+  return end >= today;
+});
 
   async function loadAll() {
     try {
@@ -178,10 +188,15 @@ else setSuggestion(null);
 
         <div className="glass" style={{ padding: 12, borderRadius: 14 }}>
           <div style={{ fontSize: 12, opacity: 0.7 }}>Status</div>
-          <div style={{ fontWeight: 900, fontSize: 18 }}>{status}</div>
-          <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
-            <b>{nextDelivery}</b>
-          </div>
+          <div style={{ fontWeight: 900, fontSize: 18 }}>
+  {isPausedActive ? "PAUSED" : "ACTIVE"}
+</div>
+
+<div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
+  {activePause
+    ? `${activePause.startDate || activePause.pauseStartDate} → ${activePause.endDate || activePause.pauseEndDate}`
+    : "No active pause"}
+</div>
         </div>
 
         <div className="glass" style={{ padding: 12, borderRadius: 14 }}>
@@ -237,18 +252,30 @@ else setSuggestion(null);
         </div>
       </div>
 
-      <div style={{ marginTop: 18 }}>
+     <div style={{ marginTop: 18 }}>
   <div style={{ fontWeight: 700 }}>Current Pause</div>
+{pauses.filter(p => {
+  const endDate = p.endDate || p.pauseEndDate;
+  return endDate >= today; // 🔥 hide past pauses
+}).length > 0 ? (
 
-  {sub?.pauseStartDate ? (
-    <div style={{ marginTop: 8, opacity: 0.9 }}>
-      {sub.pauseStartDate} → {sub.pauseEndDate || sub.pauseStartDate}
-    </div>
-  ) : (
-    <p style={{ opacity: 0.7 }}>
-      {loading ? "Loading..." : "No active pause."}
-    </p>
-  )}
+  pauses
+    .filter(p => {
+      const endDate = p.endDate || p.pauseEndDate;
+      return endDate >= today;
+    })
+    .map((p, i) => (
+      <div key={i} style={{ marginTop: 6, opacity: 0.9 }}>
+        {p.startDate || p.pauseStartDate} → {p.endDate || p.pauseEndDate}
+      </div>
+    ))
+
+) : (
+  <p style={{ opacity: 0.7 }}>
+    {loading ? "Loading..." : "No active pause."}
+  </p>
+)}
+   
 </div>
 
             {suggestion?.hasSuggestion && (

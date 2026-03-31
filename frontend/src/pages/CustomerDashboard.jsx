@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { API_BASE } from "../config/api";
+import { getSubscription, updateQty as updateQtyApi } from "../api/subscriptionApi";
 
 export default function CustomerDashboard() {
   const customerId = 1;
@@ -7,6 +8,11 @@ export default function CustomerDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [subscription, setSubscription] = useState(null);
+const today = (() => {
+  const d = new Date();
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 10);
+})();
 
   async function readJson(res, fallbackMsg) {
     if (!res.ok) {
@@ -18,8 +24,7 @@ export default function CustomerDashboard() {
   }
 
   async function loadSubscription() {
-    const res = await fetch(`${API_BASE}/api/subscriptions/${customerId}`);
-    const data = await readJson(res, "Failed to load subscription");
+    const data = await getSubscription(customerId);
     setSubscription(data ?? null);
   }
 
@@ -33,12 +38,7 @@ export default function CustomerDashboard() {
       throw new Error("Quantity must be at least 1");
     }
 
-    const res = await fetch(
-      `${API_BASE}/api/subscriptions/${customerId}/qty?value=${newQty}`,
-      { method: "PUT" }
-    );
-
-    const updated = await readJson(res, "Update failed");
+  const updated = await updateQtyApi(customerId, newQty);
     setSubscription(updated ?? null);
 
     await loadSubscription();
@@ -66,9 +66,15 @@ export default function CustomerDashboard() {
   const qty = subscription?.qtyLitres ?? subscription?.qty ?? 0;
   const status = subscription?.status ?? "—";
   const nextDelivery = subscription?.nextDeliveryDate ?? subscription?.nextDelivery ?? "—";
+  const todayDate = new Date(today);
+const nextDate = nextDelivery ? new Date(nextDelivery) : null;
+const isPausedActive =
+  nextDelivery && nextDelivery >= today;
   const effectiveEndDate =
     subscription?.effectiveEndDate ?? subscription?.endDate ?? "—";
-
+const activePause = subscription?.pauses?.find(
+  (p) => (p.pauseEndDate || p.endDate) >= today
+);
   return (
     <div className="glass pageCard">
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
@@ -112,12 +118,16 @@ export default function CustomerDashboard() {
   </div>
 </div>
         <div className="kpi">
-          <div className="kLabel">Status</div>
-          <div className="kValue">{status}</div>
-          <div style={{ marginTop: 6, fontWeight: 700, opacity: 0.75 }}>
-            {nextDelivery}
-          </div>
-        </div>
+  <div className="kLabel">Status</div>
+  <div className="kValue">{status || "—"}</div>
+
+
+<div style={{ marginTop: 6, fontWeight: 700 }}>
+  {activePause
+    ? `Pause: ${activePause.pauseStartDate || activePause.startDate} → ${activePause.pauseEndDate || activePause.endDate}`
+    : "No active pause"}
+</div>
+</div>
 
         <div className="kpi">
           <div className="kLabel">Effective End Date</div>

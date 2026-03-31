@@ -1,12 +1,27 @@
 import { useEffect, useState } from "react";
 import { API_BASE } from "../config/api";
+import {
+  getTodaySummary,
+  getAnalytics,
+  getChangeAlerts,
+  getCustomers
+} from "../api/vendorApi";
 
+function getAuthHeaders() {
+  const token = localStorage.getItem("token");
+
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+}
 export default function VendorDashboard() {
-  const vendorId = 1;
+const user = JSON.parse(localStorage.getItem("user"));
+const vendorId = user?.id || 1;
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
+const [suggestion, setSuggestion] = useState("");
   const [todayLive, setTodayLive] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [changeAlerts, setChangeAlerts] = useState(null);
@@ -15,6 +30,9 @@ export default function VendorDashboard() {
   const [showTomorrow, setShowTomorrow] = useState(false);
   const [tomorrowData, setTomorrowData] = useState(null);
   const [customers, setCustomers] = useState([]);
+    console.log("Customers FULL:", customers);
+  const [notifications, setNotifications] = useState([]);
+const [unreadCount, setUnreadCount] = useState(0);
   const [tomorrowStatus, setTomorrowStatus] = useState("idle");
 
   async function readJson(res, fallbackMsg) {
@@ -26,36 +44,47 @@ export default function VendorDashboard() {
     return text ? JSON.parse(text) : null;
   }
 
-  async function loadToday() {
-    const res = await fetch(`${API_BASE}/vendor/${vendorId}/today-summary`);
-    const data = await readJson(res, "Failed to load today summary");
-    setTodayLive(data ?? null);
-  }
+ async function loadToday() {
+  const data = await getTodaySummary(vendorId);
+  setTodayLive(data ?? null);
+}
 
   async function loadAnalytics() {
-    const res = await fetch(`${API_BASE}/vendor/${vendorId}/analytics`);
-    const data = await readJson(res, "Failed to load analytics");
-    setAnalytics(data ?? null);
-  }
+  const data = await getAnalytics(vendorId);
+  setAnalytics(data ?? null);
+}
 
-  async function loadChangeAlerts() {
-    const res = await fetch(`${API_BASE}/vendor/${vendorId}/change-alerts`);
-    const data = await readJson(res, "Failed to load change alerts");
-    setChangeAlerts(data ?? null);
-    setLastSyncedAt(data?.since ? new Date(data.since).toLocaleString() : "Not yet");
-  }
+async function loadSuggestion() {
+  const res = await fetch(`${API_BASE}/vendor/${vendorId}/pause-suggestion`, {
+    headers: getAuthHeaders()
+  });
+  const text = await res.text();
+  setSuggestion(text);
+}
+ async function loadChangeAlerts() {
+  const data = await getChangeAlerts(vendorId);
+  setChangeAlerts(data ?? null);
+ setLastSyncedAt(new Date().toLocaleString());
+}
+async function loadCustomers() {
+  const data = await getCustomers(vendorId);
 
- async function loadCustomers() {
-  const res = await fetch(`${API_BASE}/vendor/${vendorId}/customers`);
-  const data = await readJson(res, "Failed to load customers");
-  setCustomers(Array.isArray(data) ? data : []);
+  const list = Array.isArray(data) ? data : [];
+
+  setCustomers(list);
+
+  return list; // ✅ correct
 }
 
   async function loadTomorrow() {
     setTomorrowStatus("loading");
     try {
-      const res = await fetch(`${API_BASE}/vendor/${vendorId}/tomorrow-preview`);
-
+    const res = await fetch(`${API_BASE}/vendor/${vendorId}/tomorrow-preview`, {
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  },
+});
       if (res.status === 404) {
         setTomorrowStatus("missing");
         setTomorrowData(null);
@@ -70,29 +99,58 @@ export default function VendorDashboard() {
       setTomorrowData(null);
     }
   }
+async function loadNotifications(customerList) {
+  try {
+    const customerIds = customerList.map(c => c.id);
 
+    if (customerIds.length === 0) return;
+
+    const res = await fetch("http://localhost:8082/api/audit/vendor", {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(customerIds),
+    });
+
+    const data = await res.json();
+
+    setNotifications(data);
+    setUnreadCount(data.length);
+
+  } catch (e) {
+    console.error("Notification load failed", e);
+  }
+}
   async function loadAll() {
   setError("");
   setLoading(true);
 
-  const results = await Promise.allSettled([
+  await loadSuggestion();
+
+  // run independent APIs together
+  await Promise.all([
     loadToday(),
     loadAnalytics(),
-    loadChangeAlerts(),
-    loadCustomers()
+    loadChangeAlerts()
   ]);
 
-  const failed = results.find((r) => r.status === "rejected");
-  if (failed) {
-    console.error("Vendor dashboard load error:", failed.reason);
-    setError(failed.reason?.message || "Some data could not be loaded");
-  }
+  
+  const customerList = await loadCustomers();    
+await loadNotifications(customerList);    
 
   setLoading(false);
 }
   useEffect(() => {
+  if (!vendorId) return;  
+  loadAll();
+}, [vendorId]);
+
+  useEffect(() => {
+  const interval = setInterval(() => {
     loadAll();
-  }, []);
+  }, 10000); // every 10 sec
+
+  return () => clearInterval(interval);
+}, []);
 
   useEffect(() => {
     if (showTomorrow) loadTomorrow();
@@ -102,12 +160,20 @@ export default function VendorDashboard() {
     try {
       setError("");
       const res = await fetch(`${API_BASE}/vendor/${vendorId}/mark-synced`, {
-        method: "POST",
-      });
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  },
+});
+       
       const data = await readJson(res, "Failed to mark synced");
       if (data?.lastSyncedAt) {
-        setLastSyncedAt(new Date(data.lastSyncedAt).toLocaleString());
-      }
+setLastSyncedAt(
+  data?.lastSyncedAt
+    ? new Date(data.lastSyncedAt).toLocaleString()
+    : new Date().toLocaleString()
+);      }
       await loadChangeAlerts();
     } catch (e) {
       setError(e?.message || "Sync failed");
@@ -118,8 +184,12 @@ export default function VendorDashboard() {
     try {
       setError("");
       const res = await fetch(`${API_BASE}/vendor/${vendorId}/recompute-today`, {
-        method: "POST",
-      });
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  },
+});
       await readJson(res, "Failed to recompute today");
       await loadToday();
       await loadAnalytics();
@@ -207,7 +277,27 @@ export default function VendorDashboard() {
                   <div className="kValue">{analytics?.milkSavedL ?? 0} L</div>
                 </div>
               </div>
-
+<div style={{
+  marginTop: 12,
+  fontWeight: "bold",
+  padding: "10px",
+  borderRadius: "10px",
+  background:
+    analytics?.insight?.includes("🔥") ? "#ffe5e5" :
+    analytics?.insight?.includes("⚠️") ? "#fff4e5" :
+    "#e8f5e9",
+  color:
+    analytics?.insight?.includes("🔥") ? "#d32f2f" :
+    analytics?.insight?.includes("⚠️") ? "#ed6c02" :
+    "#2e7d32"
+}}>
+  {analytics?.insight?.toLowerCase().includes("normal")
+  ? "No pauses today"
+  : analytics?.insight || "No insight available"}
+</div>
+<div style={{ marginTop: 10, color: "#555" }}>
+   {suggestion}
+</div>
               <div style={{ fontSize: 15, fontWeight: 600, marginTop: 10 }}>
                 Precomputed at:{" "}
                 {analytics?.computedAt
@@ -235,46 +325,53 @@ export default function VendorDashboard() {
       </div>
     ) : (
       <div style={{ marginTop: 12 }}>
-        {customers.map((c) => (
-          <div
-            key={c.id}
-            className="glass"
-            style={{
-              padding: 12,
-              borderRadius: 14,
-              marginBottom: 10
-            }}
-          >
-            <div style={{ fontWeight: 800 }}>
-              {c.customerName || "No Name"}
-            </div>
+        {customers.filter(c => c.customerName).map((c) => {
+  return (
+    <div
+      key={c.id}
+      className="glass"
+      style={{
+        padding: 12,
+        borderRadius: 14,
+        marginBottom: 10
+      }}
+    >
+      <div style={{ fontWeight: 800 }}>
+        {c.customerName || "Unknown"}
+      </div>
 
-            <div style={{ opacity: 0.85 }}>
-              📍 {c.customerAddress || "No Address"}
-            </div>
+      <div style={{ opacity: 0.85 }}>
+        📍 {c.customerAddress || "Not Provided"}
+      </div>
 
-            <div style={{ marginTop: 6 }}>
-              Qty: <b>{c.qtyLitres} L</b>
-            </div>
+      <div style={{ marginTop: 6 }}>
+        Qty: <b>{c.qtyLitres} L</b>
+      </div>
 
-            <div style={{ marginTop: 4 }}>
-              Status:{" "}
-              <span
-                style={{
-                  color: c.status === "PAUSED" ? "#ff4d4f" : "#22c55e",
-                  fontWeight: "bold"
-                }}
-              >
-                {c.status}
-              </span>
-            </div>
+      <div style={{ marginTop: 4 }}>
+        Status:{" "}
+        <span
+          style={{
+            color: c.status === "PAUSED" ? "#ff4d4f" : "#22c55e",
+            fontWeight: "bold"
+          }}
+        >
+          {c.status}
+        </span>
+
+        {c.status === "PAUSED" && c.endDate && (
+          <div style={{ marginTop: 4, color: "#ff4d4f" }}>
+            ⏸️ Paused until {new Date(c.endDate).toLocaleDateString()}
           </div>
-        ))}
+        )}
+      </div>
+    </div>
+  );
+})}
       </div>
     )}
   </div>
 </div>
-
       <div style={{ marginTop: 14, display: "flex", justifyContent: "flex-end" }}>
         <button className="btn" onClick={() => setShowTomorrow((s) => !s)}>
           {showTomorrow ? "Hide Tomorrow Preview" : "Show Tomorrow Preview"}
@@ -344,39 +441,30 @@ export default function VendorDashboard() {
           <div style={{ fontWeight: 900 }}>Smart Alerts (Quick Summary)</div>
 
           <div style={{ marginTop: 8 }}>
-            Vendor has <b>{changeAlerts?.totalChanges ?? 0}</b> new updates.
+             You have <b>{unreadCount}</b> new notifications.
           </div>
 
-          <div style={{ marginTop: 8 }}>
-            Qty: <b>{changeAlerts?.qtyChanges ?? 0}</b> | Pauses: <b>{changeAlerts?.pauses ?? 0}</b> | Resumes: <b>{changeAlerts?.resumes ?? 0}</b>
-          </div>
         </div>
       </div>
 
       <div style={{ marginTop: 12 }}>
-        <div style={{ fontWeight: 900 }}>Change Alerts</div>
+  <div style={{ fontWeight: 900 }}>Change Alerts</div>
 
-        <div style={{ marginTop: 8, opacity: 0.85 }}>
-          Total: <b>{changeAlerts?.totalChanges ?? 0}</b> | Qty: <b>{changeAlerts?.qtyChanges ?? 0}</b> | Pause: <b>{changeAlerts?.pauses ?? 0}</b> | Resume: <b>{changeAlerts?.resumes ?? 0}</b> | Extend: <b>{changeAlerts?.extendsCount ?? 0}</b>
-        </div>
+  <div style={{ marginTop: 8, opacity: 0.85 }}>
+    Total: <b>{changeAlerts?.totalChanges ?? 0}</b> | 
+    Qty: <b>{changeAlerts?.qtyChanges ?? 0}</b> | 
+    Pause: <b>{changeAlerts?.pauses ?? 0}</b> | 
+    Resume: <b>{changeAlerts?.resumes ?? 0}</b> | 
+    Extend: <b>{changeAlerts?.extendsCount ?? 0}</b>
+  </div>
 
-        {changeAlerts?.latest?.length > 0 ? (
-          <div style={{ marginTop: 10 }}>
-            {changeAlerts.latest.map((x, i) => (
-              <div key={x.id ?? i} className="glass" style={{ padding: 12, borderRadius: 12, marginTop: 8 }}>
-                <div style={{ fontWeight: 800 }}>{x.message ?? x.action ?? "Update"}</div>
-                <div style={{ fontSize: 12, opacity: 0.6 }}>
-                  {x.timestamp ? new Date(x.timestamp).toLocaleString() : ""}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div style={{ marginTop: 8, opacity: 0.8 }}>
-            {loading ? "Loading..." : "No changes since last sync."}
-          </div>
-        )}
-      </div>
+  {!changeAlerts?.totalChanges && (
+    <div style={{ marginTop: 8, opacity: 0.8 }}>
+      {loading ? "Loading..." : "No changes since last sync."}
     </div>
+  )}
+</div>
+      </div>
+    
   );
 }

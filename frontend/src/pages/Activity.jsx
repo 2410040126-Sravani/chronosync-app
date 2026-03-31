@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { API_BASE } from "../config/api";
 import "../styles/Activity.css";
+import { getAudit } from "../api/auditApi";
 
 function readJsonSafe(res) {
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -32,7 +33,7 @@ function getType(text) {
   if (t.includes("subscription paused")) return "PAUSE";
   if (t.includes("subscription resumed")) return "RESUME";
   if (t.includes("auto-extended")) return "PAUSE";
-  return "ACTIVITY";
+  return text;
 }
 
 export default function Activity() {
@@ -49,8 +50,7 @@ export default function Activity() {
       if (isRefresh) setRefreshing(true);
       else setLoading(true);
 
-      const res = await fetch(`${API_BASE}/api/audit/${customerId}`);
-      const data = await readJsonSafe(res);
+     const data = await getAudit(customerId);
       setItems(Array.isArray(data) ? data : []);
     } catch (e) {
       setError(e.message || "Failed to load activity");
@@ -67,15 +67,19 @@ export default function Activity() {
 
   
    const events = useMemo(() => {
-  const mapped = items.map((item, index) => {
-    const rawText = getEventText(item);
-    return {
-      id: item?.id ?? `${index}-${rawText}`,
-      type: getType(rawText),
-      message: getCleanMessage(rawText),
-      timestamp: getTimestamp(item, rawText),
-    };
-  });
+ const mapped = items.map((item, index) => {
+  const rawText = getEventText(item);
+
+  return {
+    id: item?.id ?? `${index}`,
+    type: getType(rawText),
+
+    // 🔥 FIX HERE
+    message: rawText || item?.meta || item?.type || "No message",
+
+    timestamp: getTimestamp(item, rawText),
+  };
+});
 
   return showAll ? mapped : mapped.slice(0, 20);
 }, [items, showAll]);
@@ -111,7 +115,7 @@ export default function Activity() {
             {events.map((event) => (
               <article className="activityItem" key={event.id}>
                 <div className="activityItemTop">
-                  <span className="activityType">{event.type}</span>
+                  <span className="activityType">{event.type.length > 20 ? "EVENT" : event.type}</span>
                   <span className="activityTime">{event.timestamp}</span>
                 </div>
                 <div className="activityMessage">{event.message}</div>

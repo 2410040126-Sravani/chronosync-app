@@ -1,6 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { subscribe, getSnapshot, store } from "../../mock/store";
 import "../../styles/layout.css";
 
 const STORAGE_KEY = "chronosync_read_activity_ids";
@@ -22,34 +21,58 @@ function saveReadIds(set) {
 }
 
 export default function AppLayout({ children }) {
-  useSyncExternalStore(subscribe, getSnapshot); // ✅ re-render when store updates
+  const [notifications, setNotifications] = useState([]);
+  async function loadNotifications() {
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const vendorId = user?.id;
+
+    const resCustomers = await fetch(`http://localhost:8082/api/vendor/${vendorId}/customers`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+    });
+
+    const customers = await resCustomers.json();
+    const customerIds = customers.map(c => c.id);
+
+    const res = await fetch("http://localhost:8082/api/audit/vendor", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      },
+      body: JSON.stringify(customerIds),
+    });
+
+    const data = await res.json();
+
+    setNotifications(data);
+
+  } catch (e) {
+    console.error(e);
+  }
+}
+useEffect(() => {
+  loadNotifications();
+
+  const interval = setInterval(loadNotifications, 10000);
+  return () => clearInterval(interval);
+}, []);
+  
+  
   const location = useLocation();
 
   const [open, setOpen] = useState(false);
   const panelRef = useRef(null);
-
-  // local “read state” (persisted)
+  const rect = panelRef.current?.getBoundingClientRect();
   const [readIds, setReadIds] = useState(() => loadReadIds());
 
-  // Map activity -> notifications (top 8)
-const notifications = useMemo(() => {
-  const items = store.activity || [];
-
-  return items.slice(0, 8).map((a) => ({
-    id: a.id,
-    type: a.type,
-     title: (a.text || "Update").replace(/\d{1,2}\/\d{1,2}\/\d{4}.*/, "").trim(),
-    time: a.at,
-    details: a.details,
-    read: readIds.has(a.id),
-  }));
-}, [readIds, store.activity]);
+ 
+  
   const unreadCount = useMemo(
     () => notifications.filter((n) => !n.read).length,
     [notifications]
   );
 
-  // Close on outside click
   useEffect(() => {
     function handleClickOutside(e) {
       if (panelRef.current && !panelRef.current.contains(e.target)) setOpen(false);
@@ -58,7 +81,6 @@ const notifications = useMemo(() => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 
-  // Close on Escape
   useEffect(() => {
     function onKey(e) {
       if (e.key === "Escape") setOpen(false);
@@ -67,7 +89,6 @@ const notifications = useMemo(() => {
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
 
-  // Close notifications when route changes
   useEffect(() => {
     setOpen(false);
   }, [location.pathname]);
@@ -91,7 +112,6 @@ const notifications = useMemo(() => {
   }
 
   function clearUnreadOnly() {
-    // “Clear” should not delete activity; just mark all as read + close
     markAllRead();
     setOpen(false);
   }
@@ -108,75 +128,110 @@ const notifications = useMemo(() => {
     <div className="appContainer">
       <div className="appHeader glass">
         <div className="logo appTitle">
-  CHRONOSYNC
-  <div className="tagline">Smart Milk Delivery System</div>
-</div>
+          CHRONOSYNC
+          <div className="tagline">Smart Milk Delivery System</div>
+        </div>
 
-        <div className="notifWrap" ref={panelRef}>
-          <button
-            className="bellBtn"
-            onClick={() => setOpen((v) => !v)}
-            aria-label="Notifications"
-            aria-expanded={open}
-          >
-            🔔
-             </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+  <div className="notifWrap">
+  <button
+    className="bellBtn"
+    ref={panelRef}   // ✅ MOVE ref HERE
+    onClick={() => setOpen((v) => !v)}
+  >
+    🔔
+  </button>
             {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
-         
 
-          {open && (
-            <div className="notifPanel" role="dialog" aria-label="Notifications panel">
-              <div className="notifHeader">
-                <div className="notifTitle">Smart Alerts</div>
-                <div className="notifHeaderActions">
-                  <button className="miniBtn ghost" onClick={markAllRead}>
-                    Mark read
-                  </button>
-                  <button className="miniBtn ghost" onClick={clearUnreadOnly}>
-                    Close
+            {open && (
+         <div
+  className="notifPanel"
+  style={{
+    position: "fixed",
+    top: rect?.bottom + 10,
+    left: rect?.left + rect?.width / 2,
+    transform: "translateX(-50%)",
+  }}
+>
+                <div className="notifHeader">
+                  <div className="notifTitle">Smart Alerts</div>
+                  <div className="notifHeaderActions">
+                    <button className="miniBtn ghost" onClick={markAllRead}>
+                      Mark read
+                    </button>
+                    <button className="miniBtn ghost" onClick={clearUnreadOnly}>
+                      Close
+                    </button>
+                  </div>
+                </div>
+
+                <div className="notifList">
+                  {notifications.length === 0 ? (
+                    <div className="notifEmpty">No activity yet.</div>
+                  ) : (
+                    notifications.map((n,i) => (
+                      <div
+                        key={i}
+                        className={"notifItem"}
+                        onClick={() => markRead(n.id)}
+                        role="button"
+                        tabIndex={0}
+                      >
+                        <div className="notifItemTop">
+                          <span className="notifItemHead">
+  {iconFor(n.type)} {n.meta}
+</span>
+<span className="notifTime">
+  {new Date(n.at).toLocaleString()}
+</span>
+                        </div>
+
+                        {n.details && Object.keys(n.details).length > 0 && (
+                          <div className="notifMsg">
+                            {Object.entries(n.details)
+                              .slice(0, 2)
+                              .map(([k, v]) => `${k}: ${String(v)}`)
+                              .join(" • ")}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className="notifFooter">
+                  <button className="notifClearBtn" onClick={() => setOpen(false)}>
+                    Done
                   </button>
                 </div>
               </div>
+            )}
+          </div>
 
-              <div className="notifList">
-                {notifications.length === 0 ? (
-                  <div className="notifEmpty">No activity yet.</div>
-                ) : (
-                  notifications.map((n) => (
-                    <div
-                      key={n.id}
-                      className={`notifItem ${n.read ? "read" : "unread"}`}
-                      onClick={() => markRead(n.id)}
-                      role="button"
-                      tabIndex={0}
-                    >
-                      <div className="notifItemTop">
-                        <span className="notifItemHead">
-                          {iconFor(n.type)} {n.title}
-                        </span>
-                        <span className="notifTime">{n.time}</span>
-                      </div>
-
-                      {n.details && Object.keys(n.details).length > 0 && (
-                        <div className="notifMsg">
-                          {Object.entries(n.details)
-                            .slice(0, 2)
-                            .map(([k, v]) => `${k}: ${String(v)}`)
-                            .join(" • ")}
-                        </div>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-
-              <div className="notifFooter">
-                <button className="notifClearBtn" onClick={() => setOpen(false)}>
-                  Done
-                </button>
-              </div>
-            </div>
-          )}
+          {/* LOGOUT BUTTON */}
+          <button 
+            onClick={() => {
+              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+              window.location.href = '/login';
+            }}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '16px',
+              padding: '8px 12px',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              color: '#666',
+              fontWeight: '500'
+            }}
+            title="Logout"
+          >
+            🚪 Logout
+          </button>
         </div>
       </div>
 

@@ -4,17 +4,61 @@ import Activity from "./pages/Activity";
 import VendorDashboard from "./pages/VendorDashboard";
 import CustomerDashboard from "./pages/CustomerDashboard";
 import Manage from "./pages/Manage";
+import Login from "./pages/Login";
 
 export default function App() {
+  const token = localStorage.getItem("token");
+
   return (
-    <AppLayout>
-      <Routes>
-        <Route path="/" element={<Navigate to="/customer" replace />} />
-        <Route path="/customer" element={<CustomerDashboard />} />
-        <Route path="/manage" element={<Manage />} />
-        <Route path="/activity" element={<Activity />} />
-        <Route path="/vendor" element={<VendorDashboard />} />
-      </Routes>
-    </AppLayout>
+    <Routes>
+      {/* Login */}
+      <Route path="/" element={<Login />} />
+      <Route path="/login" element={<Login />} />
+
+      {/* Protected */}
+      <Route
+        path="/customer"
+        element={
+          token ? (
+            <AppLayout><CustomerDashboard /></AppLayout>
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+
+      <Route
+        path="/manage"
+        element={
+          token ? (
+            <AppLayout><Manage /></AppLayout>
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+
+      <Route
+        path="/activity"
+        element={
+          token ? (
+            <AppLayout><Activity /></AppLayout>
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+
+      <Route
+        path="/vendor"
+        element={
+          token ? (
+            <AppLayout><VendorDashboard /></AppLayout>
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+    </Routes>
   );
 }

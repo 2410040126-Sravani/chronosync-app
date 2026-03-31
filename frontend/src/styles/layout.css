@@ -28,7 +28,9 @@
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
   border-radius: 20px;
-  backdrop-filter: blur(10px);
+
+  /* FIX */
+  backdrop-filter: none;
 }
 
 /* ===== Header ===== */
@@ -40,6 +42,9 @@
   justify-content: space-between;
   align-items: center;
   overflow: visible;
+
+  position: relative;   /* ✅ ADD */
+  z-index: 10;          /* ✅ ADD */
 }
 
 /* ===== Brand Title ===== */
@@ -72,6 +77,9 @@
   padding: 10px;
   display: flex;
   gap: 12px;
+
+  position: relative;   /* ✅ ADD */
+  z-index: 5;           /* ✅ ADD */
 }
 
 .tab{
@@ -196,19 +204,14 @@
 
 /* ===== Notification Panel ===== */
 .notifPanel{
-  position: absolute;
-  top: 60px;
-  right: 0;
   width: 280px;
   background: #ffffff;
   border: 1px solid #e3eafc;
   border-radius: 18px;
   box-shadow: 0 25px 70px rgba(0,0,0,0.15);
   padding: 16px;
-  z-index: 9999;
-  backdrop-filter: none;
+  z-index: 99999;
 }
-
 /* ===== Notification Items ===== */
 .notifItem{
   background: rgba(255,255,255,0.95);
@@ -220,47 +223,26 @@
 }
 
 /* ===== Remove blur issues ===== */
-.notifPanel * {
-  backdrop-filter: none !important;
-  filter: none !important;
-}
 
-/* ===============================
-   Activity Timeline (Add Below)
-================================= */
-
-.activity-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.timeline-card {
-  background: rgba(255,255,255,0.95);
+.notifPanel button {
+  margin-top: 10px;
+  padding: 6px 12px;
+  border-radius: 10px;
   border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 14px 16px;
-  box-shadow: 0 8px 24px rgba(16,34,72,0.06);
-}
-
-.timeline-top {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-
-.timeline-type {
-  font-weight: 900;
+  background: white;
   font-size: 13px;
-  color: var(--accent1);
+  font-weight: 700;
+  cursor: pointer;
 }
-
-.timeline-time {
-  font-size: 11px;
-  color: #8a93aa;
+.notifWrap{
+  position: relative;
+  display: inline-block;   /* ✅ critical */
 }
+.bellBtn{
+  width: 44px;
+  height: 44px;
 
-.timeline-message {
-  font-size: 14px;
-  color: #4a556f;
+  display: flex;           /* ✅ ensures exact size */
+  align-items: center;
+  justify-content: center;
 }
