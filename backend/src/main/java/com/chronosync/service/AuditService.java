@@ -46,6 +46,35 @@ public class AuditService {
                 .collect(Collectors.toList());
     }
 
+    public List<AuditEventDTO> getVendorNotifications(List<Long> customerIds, int limit) {
+
+        int safeLimit = Math.min(Math.max(limit, 1), 200);
+
+        List<AuditLog> logs =
+                auditRepo.findByCustomerIdInOrderByTimestampDesc(customerIds);
+
+        return logs.stream()
+                .limit(safeLimit)
+                .map(a -> {
+                    AuditEventDTO dto = new AuditEventDTO();
+
+                    dto.setType(toType(a.getAction()));
+                    dto.setAt(
+                            a.getTimestamp() == null
+                                    ? ""
+                                    : a.getTimestamp().toString()
+                    );
+                    dto.setMeta(
+                            a.getAction() == null
+                                    ? ""
+                                    : a.getAction()
+                    );
+
+                    return dto;
+                })
+                .toList();
+    }
+    
     private String toType(String action) {
         if (action == null) return "EVENT";
 

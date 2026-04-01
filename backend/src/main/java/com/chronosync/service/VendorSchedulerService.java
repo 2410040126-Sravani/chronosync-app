@@ -43,9 +43,8 @@ public class VendorSchedulerService {
         for (Long vendorId : vendorIds) {
 
             // Use your live analytics logic
-            VendorAnalyticsDTO dto =
-                    vendorService.getAnalytics(vendorId, "monthToDate");
-
+        	VendorAnalyticsDTO dto =
+        	        vendorService.getAnalyticsPreferSnapshot(vendorId, "monthToDate");
             VendorAnalyticsSnapshot snapshot =
                     new VendorAnalyticsSnapshot(
                             vendorId,

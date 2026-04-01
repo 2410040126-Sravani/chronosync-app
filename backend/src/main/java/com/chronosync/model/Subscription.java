@@ -2,6 +2,7 @@ package com.chronosync.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "subscriptions")
@@ -11,29 +12,42 @@ public class Subscription {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    // ===============================
+    // BASIC FIELDS
+    // ===============================
+    @Column(name = "customer_id", nullable = false)
     private Long customerId;
 
-    @Column(nullable = false)
-    private Long vendorId;
+    @Column(name = "customer_name")
+    private String customerName;
 
-    @Column(nullable = false)
+    @Column(name = "customer_address")
+    private String customerAddress;
+
+    // ✅ FIXED mapping
+    @Column(name = "qty_litres")
     private int qtyLitres;
 
-    @Column(nullable = false)
-    private String status; // ACTIVE / PAUSED
-
+    @Column(name = "next_delivery_date")
     private LocalDate nextDeliveryDate;
+
+    @Column(name = "end_date")
     private LocalDate endDate;
 
-    // ✅ Pause-aware automation fields
-    private LocalDate pauseStartDate;
+    // ===============================
+    // 🔥 IMPORTANT (RESTORED)
+    // ===============================
+    @Column(name = "vendor_id")
+    private Long vendorId;
 
-    // ✅ NEW: required for date-range pause
-    private LocalDate pauseEndDate;
-    
-    private String customerName;
-    private String customerAddress;
+    @Column(name = "status")
+    private String status; // ACTIVE / PAUSED
+
+    // ===============================
+    // RELATIONSHIP
+    // ===============================
+    @OneToMany(mappedBy = "subscription", cascade = CascadeType.ALL, orphanRemoval = true,  fetch = FetchType.EAGER )
+    private List<PausePeriod> pauses;
 
     /* ---------------- Getters & Setters ---------------- */
 
@@ -43,14 +57,14 @@ public class Subscription {
     public Long getCustomerId() { return customerId; }
     public void setCustomerId(Long customerId) { this.customerId = customerId; }
 
-    public Long getVendorId() { return vendorId; }
-    public void setVendorId(Long vendorId) { this.vendorId = vendorId; }
+    public String getCustomerName() { return customerName; }
+    public void setCustomerName(String customerName) { this.customerName = customerName; }
+
+    public String getCustomerAddress() { return customerAddress; }
+    public void setCustomerAddress(String customerAddress) { this.customerAddress = customerAddress; }
 
     public int getQtyLitres() { return qtyLitres; }
     public void setQtyLitres(int qtyLitres) { this.qtyLitres = qtyLitres; }
-
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
 
     public LocalDate getNextDeliveryDate() { return nextDeliveryDate; }
     public void setNextDeliveryDate(LocalDate nextDeliveryDate) { this.nextDeliveryDate = nextDeliveryDate; }
@@ -58,12 +72,12 @@ public class Subscription {
     public LocalDate getEndDate() { return endDate; }
     public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
 
-    public LocalDate getPauseStartDate() { return pauseStartDate; }
-    public void setPauseStartDate(LocalDate pauseStartDate) { this.pauseStartDate = pauseStartDate; }
+    public Long getVendorId() { return vendorId; }
+    public void setVendorId(Long vendorId) { this.vendorId = vendorId; }
 
-    public LocalDate getPauseEndDate() { return pauseEndDate; }
-    public void setPauseEndDate(LocalDate pauseEndDate) { this.pauseEndDate = pauseEndDate; }
-    
-    public String getCustomerName() { return customerName; }
-    public String getCustomerAddress() { return customerAddress; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public List<PausePeriod> getPauses() { return pauses; }
+    public void setPauses(List<PausePeriod> pauses) { this.pauses = pauses; }
 }

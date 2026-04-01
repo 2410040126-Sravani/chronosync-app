@@ -6,7 +6,14 @@ public class VendorTomorrowCustomerDTO {
     private String customerAddress;
     private int qtyLitres;
     private String status;
+    private String pauseStart;
+    private String pauseEnd;
 
+    public String getPauseStart() { return pauseStart; }
+    public void setPauseStart(String pauseStart) { this.pauseStart = pauseStart; }
+
+    public String getPauseEnd() { return pauseEnd; }
+    public void setPauseEnd(String pauseEnd) { this.pauseEnd = pauseEnd; }
     public VendorTomorrowCustomerDTO() {}
 
     public VendorTomorrowCustomerDTO(Long customerId, String customerName, String customerAddress,

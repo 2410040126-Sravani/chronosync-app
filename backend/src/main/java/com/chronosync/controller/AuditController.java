@@ -1,25 +1,32 @@
+
 package com.chronosync.controller;
 
-import com.chronosync.model.AuditLog;
-import com.chronosync.repository.AuditLogRepository;
+import com.chronosync.dto.AuditEventDTO;
+import com.chronosync.service.AuditService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/audit")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:5173")
 public class AuditController {
 
-    private final AuditLogRepository repo;
+    private final AuditService auditService;
 
-    public AuditController(AuditLogRepository repo) {
-        this.repo = repo;
+    public AuditController(AuditService auditService) {
+        this.auditService = auditService;
     }
 
-    // GET http://localhost:8082/api/audit/1
+    // Existing (customer timeline)
     @GetMapping("/{customerId}")
-    public List<AuditLog> timeline(@PathVariable Long customerId) {
-        return repo.findByCustomerIdOrderByTimestampDesc(customerId);
+    public List<AuditEventDTO> timeline(@PathVariable Long customerId) {
+        return auditService.getRecent(customerId, 50);
+    }
+
+    // ✅ NEW: Vendor notifications
+    @PostMapping("/vendor")
+    public List<AuditEventDTO> vendorNotifications(@RequestBody List<Long> customerIds) {
+        return auditService.getVendorNotifications(customerIds, 20);
     }
 }

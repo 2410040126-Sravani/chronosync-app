@@ -1,40 +1,50 @@
 package com.chronosync.controller;
 
-import com.chronosync.dto.PauseSuggestionDTO;
 import com.chronosync.dto.AuditEventDTO;
 import com.chronosync.model.Subscription;
 import com.chronosync.service.SubscriptionService;
 import com.chronosync.service.AuditService;
 import org.springframework.web.bind.annotation.*;
-
+import java.util.Map;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/subscriptions")
-@CrossOrigin(origins = "http://localhost:5173") // ✅ Vite port (change if needed)
+@CrossOrigin(origins = "http://localhost:5173")
 public class SubscriptionController {
-
+	
     private final SubscriptionService service;
     private final AuditService auditService;
 
-    public SubscriptionController(SubscriptionService service, AuditService auditService) {
-        this.service = service;
-        this.auditService = auditService;
-    }
+    @GetMapping("/{customerId}/suggestion")
+	public String suggestion(@PathVariable Long customerId)
+	{ 
+    	return service.getPauseSuggestion(customerId);		}
+    public SubscriptionController(SubscriptionService subscriptionService,
+            AuditService auditService) {
+    	this.service = subscriptionService;
+this.auditService = auditService;
+}
 
+    // ===============================
+    // GET SUBSCRIPTION
+    // ===============================
     @GetMapping("/{customerId}")
     public Subscription get(@PathVariable Long customerId) {
-        return service.getSubscription(customerId);
+        return service.get(customerId);
     }
 
+    // ===============================
+    // UPDATE QUANTITY
+    // ===============================
     @PutMapping("/{customerId}/qty")
     public Subscription qty(@PathVariable Long customerId, @RequestParam int value) {
         return service.updateQty(customerId, value);
     }
 
-    // ✅ Pause accepts date range (query params)
-    // Example:
-    // PUT http://localhost:8082/api/subscriptions/1/pause?start=2026-02-27&end=2026-03-01
+    // ===============================
+    // PAUSE
+    // ===============================
     @PutMapping("/{customerId}/pause")
     public Subscription pause(
             @PathVariable Long customerId,
@@ -44,23 +54,33 @@ public class SubscriptionController {
         return service.pause(customerId, start, end);
     }
 
+    // ===============================
+    // RESUME
+    // ===============================
     @PutMapping("/{customerId}/resume")
     public Subscription resume(@PathVariable Long customerId) {
         return service.resume(customerId);
     }
 
+    // ===============================
+    // EXTEND
+    // ===============================
     @PutMapping("/{customerId}/extend")
     public Subscription extend(@PathVariable Long customerId, @RequestParam int days) {
         return service.extend(customerId, days);
     }
 
+    // ===============================
+    // PAUSE SUGGESTION (FIXED)
+    // ===============================
     @GetMapping("/{customerId}/pause-suggestion")
-    public PauseSuggestionDTO pauseSuggestion(@PathVariable Long customerId) {
-        return service.getPauseSuggestion(customerId);
+    public Map<String, String> pauseSuggestion(@PathVariable Long customerId) {
+        return Map.of("message", service.getPauseSuggestion(customerId));
     }
 
-    // ✅ NEW: Activity/Audit Timeline Endpoint (unique + demo-friendly)
-    // Example: GET http://localhost:8082/api/subscriptions/1/audit?limit=30
+    // ===============================
+    // AUDIT
+    // ===============================
     @GetMapping("/{customerId}/audit")
     public List<AuditEventDTO> audit(
             @PathVariable Long customerId,
@@ -68,4 +88,6 @@ public class SubscriptionController {
     ) {
         return auditService.getRecent(customerId, limit);
     }
+
+
 }

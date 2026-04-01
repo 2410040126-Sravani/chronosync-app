@@ -9,7 +9,7 @@ import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/vendor")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:5173")
 public class VendorTodaySummaryController {
 
     private final VendorTodaySummaryRepository summaryRepo;

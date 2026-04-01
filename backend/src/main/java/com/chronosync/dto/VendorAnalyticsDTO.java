@@ -1,3 +1,4 @@
+
 package com.chronosync.dto;
 
 import java.time.LocalDateTime;
@@ -13,6 +14,9 @@ public class VendorAnalyticsDTO {
 
     // optional metadata
     private LocalDateTime computedAt;
+
+    // 🔥 ADD THIS (NEW FIELD)
+    private String insight;
 
     public VendorAnalyticsDTO() {}
 
@@ -35,4 +39,15 @@ public class VendorAnalyticsDTO {
 
     public LocalDateTime getComputedAt() { return computedAt; }
     public void setComputedAt(LocalDateTime computedAt) { this.computedAt = computedAt; }
+
+    // ✅ NEW GETTER
+    public String getInsight() {
+        return insight;
+    }
+
+    // ✅ NEW SETTER
+    public void setInsight(String insight) {
+        this.insight = insight;
+    }
 }
+

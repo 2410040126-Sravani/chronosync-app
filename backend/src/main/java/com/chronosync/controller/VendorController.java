@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/vendor")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:5173")
 public class VendorController {
 
     private final VendorService service;
@@ -22,6 +22,7 @@ public class VendorController {
     public VendorChangeAlertsDTO changeAlerts(@PathVariable Long vendorId) {
         return service.getChangeAlerts(vendorId);
     }
+    @GetMapping("/{vendorId}/pause-suggestion") public String pauseSuggestion(@PathVariable Long vendorId) { return service.getPauseSuggestion(vendorId); }
 
     @PostMapping("/{vendorId}/mark-synced")
     public VendorSyncState markSynced(@PathVariable Long vendorId) {
@@ -38,5 +39,10 @@ public class VendorController {
     @GetMapping("/{vendorId}/tomorrow-preview")
     public VendorTodaySummaryDTO tomorrowPreview(@PathVariable Long vendorId) {
         return service.getTomorrowPreview(vendorId);
+    }
+    
+    @GetMapping("/{vendorId}/customers")
+    public java.util.List<com.chronosync.model.Subscription> customers(@PathVariable Long vendorId) {
+        return service.getTodayCustomers(vendorId);
     }
 }
