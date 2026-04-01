@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import { API_BASE } from "../config/api";
 import "../styles/Login.css";
 
@@ -16,7 +17,7 @@ function Login() {
     setLoading(true);
 
     try {
-      let url = "https://chronosync-docker.onrender.com/api/auth/";
+let url = `${API_BASE}/auth/`;
       let body = { email, password };
 
       if (isLogin) {
