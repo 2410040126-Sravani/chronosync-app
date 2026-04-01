@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { API_BASE } from "../config/api";
 import "../styles/Activity.css";
 import { getAudit } from "../api/auditApi";
 
