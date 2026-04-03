@@ -17,13 +17,19 @@ function getAuthHeaders() {
 }
 export default function VendorDashboard() {
 
+const role = localStorage.getItem("role");
+
+if (role !== "VENDOR") {
+  return <div>Please login as vendor</div>;
+}
+
 const stored = localStorage.getItem("user");
 const user = stored ? JSON.parse(stored) : null;
 
-const vendorId = user?.userId;
+const vendorId = user?.userId || user?.id;
 
 if (!vendorId) {
-  return <div>Please login as vendor</div>;
+  return <div>Vendor data not found</div>;
 }
 
   const [loading, setLoading] = useState(true);

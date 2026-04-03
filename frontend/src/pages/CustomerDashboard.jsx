@@ -3,7 +3,20 @@ import { API_BASE } from "../config/api";
 import { getSubscription, updateQty as updateQtyApi } from "../api/subscriptionApi";
 
 export default function CustomerDashboard() {
-  const customerId = 1;
+  const role = localStorage.getItem("role");
+
+if (role !== "CUSTOMER") {
+  return <div>Please login as customer</div>;
+}
+
+const stored = localStorage.getItem("user");
+const user = stored ? JSON.parse(stored) : null;
+
+const customerId = user?.customerId || user?.id;
+
+if (!customerId) {
+  return <div>Customer data not found</div>;
+}
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
