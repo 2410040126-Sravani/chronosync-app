@@ -19,7 +19,7 @@ function Login() {
 
   try {
     const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
-
+console.log({ email, password, name, role });
     const res = await fetch(`${API_BASE}${endpoint}`, {
       method: "POST",
       headers: {
@@ -29,7 +29,7 @@ function Login() {
         email,
         password,
         name,
-        role,
+        role: role || "CUSTOMER",
       }),
     });
 
