@@ -8,15 +8,16 @@ export default function CustomerDashboard() {
 if (role !== "CUSTOMER") {
   return <div>Please login as customer</div>;
 }
+const [customerId, setCustomerId] = useState(null);
 
-const stored = localStorage.getItem("user");
-const user = stored ? JSON.parse(stored) : null;
+useEffect(() => {
+  const stored = localStorage.getItem("user");
+  const user = stored ? JSON.parse(stored) : null;
 
-const customerId = user?.customerId || user?.id;
+  const id = user?.id || user?.customerId;
+  setCustomerId(id);
+}, []);
 
-if (!customerId) {
-  return <div>Customer data not found</div>;
-}
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -72,9 +73,11 @@ const today = (() => {
     }
   }
 
-  useEffect(() => {
+useEffect(() => {
+  if (customerId) {
     loadAll();
-  }, []);
+  }
+}, [customerId]);
 
   const qty = subscription?.qtyLitres ?? subscription?.qty ?? 0;
   const status = subscription?.status ?? "—";

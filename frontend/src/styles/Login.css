@@ -119,3 +119,50 @@
 .login-toggle:hover {
   text-decoration: underline;
 }
+
+/* ===== ROLE SELECTION ===== */
+.role-section {
+  margin-top: 18px;
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.role-title {
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #0f1c3d;
+  font-size: 14px;
+}
+
+/* container */
+.role-container {
+  display: flex;
+  gap: 12px;
+}
+
+/* buttons */
+.role-btn {
+  flex: 1;
+  padding: 12px 0;
+  border-radius: 14px;
+  border: 1px solid rgba(40, 90, 180, 0.18);
+  background: #f4f7ff;
+  color: #333;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+/* active */
+.role-btn.active {
+  background: linear-gradient(90deg, #2f66ff, #6ea8ff);
+  color: white;
+  border: none;
+  box-shadow: 0 6px 18px rgba(47, 102, 255, 0.3);
+}
+
+/* hover */
+.role-btn:hover {
+  transform: translateY(-1px);
+}

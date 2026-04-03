@@ -7,7 +7,7 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [role, setRole] = useState(""); // ✅ role
+  const [role, setRole] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -64,21 +64,23 @@ function Login() {
       if (!data.token) {
         throw new Error("Login failed");
       }
-localStorage.clear();
+
+      // ✅ Clear old data (important fix)
+      localStorage.clear();
+
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data));
 
-   // ✅ FORCE ROLE FIX
-let finalRole = data.role;
+      // ✅ Role fix
+      let finalRole = data.role;
 
-if (!finalRole) {
-  // fallback if backend not sending role
-  finalRole = email.includes("vendor") ? "VENDOR" : "CUSTOMER";
-}
+      if (!finalRole) {
+        finalRole = email.includes("vendor") ? "VENDOR" : "CUSTOMER";
+      }
 
-// ✅ SAVE CORRECTLY
-localStorage.setItem("role", finalRole);
+      localStorage.setItem("role", finalRole);
 
+      // ✅ Redirect
       if (finalRole === "VENDOR") {
         window.location.href = "/vendor";
       } else {
@@ -114,27 +116,15 @@ localStorage.setItem("role", finalRole);
                 required
               />
 
-              {/* 🔥 NEW BIG ROLE BUTTONS */}
-              <div style={{ marginTop: "15px" }}>
-                <label style={{ fontWeight: "600", marginBottom: "6px", display: "block" }}>
-                  Select Role
-                </label>
+              {/* 🔥 CLEAN ROLE UI */}
+              <div className="role-section">
+                <label className="role-title">Select Role</label>
 
-                <div style={{ display: "flex", gap: "10px" }}>
+                <div className="role-container">
                   <button
                     type="button"
                     onClick={() => setRole("CUSTOMER")}
-                    style={{
-                      flex: 1,
-                      padding: "14px",
-                      fontSize: "16px",
-                      borderRadius: "12px",
-                      border: "none",
-                      cursor: "pointer",
-                      background: role === "CUSTOMER" ? "#4f7cff" : "#e5e7eb",
-                      color: role === "CUSTOMER" ? "white" : "#333",
-                      fontWeight: "600"
-                    }}
+                    className={`role-btn ${role === "CUSTOMER" ? "active" : ""}`}
                   >
                     Customer
                   </button>
@@ -142,17 +132,7 @@ localStorage.setItem("role", finalRole);
                   <button
                     type="button"
                     onClick={() => setRole("VENDOR")}
-                    style={{
-                      flex: 1,
-                      padding: "14px",
-                      fontSize: "16px",
-                      borderRadius: "12px",
-                      border: "none",
-                      cursor: "pointer",
-                      background: role === "VENDOR" ? "#4f7cff" : "#e5e7eb",
-                      color: role === "VENDOR" ? "white" : "#333",
-                      fontWeight: "600"
-                    }}
+                    className={`role-btn ${role === "VENDOR" ? "active" : ""}`}
                   >
                     Vendor
                   </button>

@@ -23,6 +23,9 @@ function saveReadIds(set) {
 }
 
 export default function AppLayout({ children }) {
+  const rawUser = localStorage.getItem("user");
+const user = rawUser ? JSON.parse(rawUser) : null;
+const role = localStorage.getItem("role");
   const [notifications, setNotifications] = useState([]);
   async function loadNotifications() {
   try {
@@ -137,6 +140,11 @@ useEffect(() => {
         <div className="logo appTitle">
           CHRONOSYNC
           <div className="tagline">Smart Milk Delivery System</div>
+           {/* ✅ ADD THIS ONLY */}
+  <div style={{ fontSize: "13px", marginTop: "6px", color: "#666" }}>
+    Welcome, {user?.name || "User"} ({role})
+  </div>
+
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
