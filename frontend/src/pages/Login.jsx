@@ -64,12 +64,20 @@ function Login() {
       if (!data.token) {
         throw new Error("Login failed");
       }
-
+localStorage.clear();
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data));
 
-      const finalRole = data.role || role;
-      localStorage.setItem("role", finalRole);
+   // ✅ FORCE ROLE FIX
+let finalRole = data.role;
+
+if (!finalRole) {
+  // fallback if backend not sending role
+  finalRole = email.includes("vendor") ? "VENDOR" : "CUSTOMER";
+}
+
+// ✅ SAVE CORRECTLY
+localStorage.setItem("role", finalRole);
 
       if (finalRole === "VENDOR") {
         window.location.href = "/vendor";
