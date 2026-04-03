@@ -1,5 +1,4 @@
 import { useState } from "react";
-
 import { API_BASE } from "../config/api";
 import "../styles/Login.css";
 
@@ -17,14 +16,15 @@ function Login() {
     setLoading(true);
 
     try {
-let url = `${API_BASE}/auth/`;
+      let url = `${API_BASE}/auth/`;
       let body = { email, password };
 
+      // 🔹 LOGIN / REGISTER
       if (isLogin) {
         url += "login";
       } else {
         url += "register";
-        body = { ...body, name, role: "VENDOR" };
+        body = { ...body, name, role: "CUSTOMER" }; // default role
       }
 
       const response = await fetch(url, {
@@ -44,33 +44,41 @@ let url = `${API_BASE}/auth/`;
       } catch {
         data = text;
       }
-if (!response.ok) {
-  let errorMsg = "Invalid email or password";
 
-  if (typeof data === "string") {
-    errorMsg = data;
-  } else if (data?.message) {
-    errorMsg = data.message;
-  } else if (response.status === 401) {
-    errorMsg = "Invalid email or password";
-  }
+      // 🔹 ERROR HANDLING
+      if (!response.ok) {
+        let errorMsg = "Invalid email or password";
 
-  throw new Error(errorMsg);
-}
-if (!data.token) {
-  throw new Error("Login failed");
-}
+        if (typeof data === "string") {
+          errorMsg = data;
+        } else if (data?.message) {
+          errorMsg = data.message;
+        }
+
+        throw new Error(errorMsg);
+      }
+
+      if (!data.token) {
+        throw new Error("Login failed");
+      }
+
+      // 🔹 STORE DATA
       localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify({
-  ...data,
-  role: "VENDOR"
-}));
-localStorage.setItem("role", data.role);
-if (data.role === "VENDOR" || data.role === "USER") {
-    window.location.href = "/vendor";
-} else {
-  window.location.href = "/customer";
-}
+      localStorage.setItem("user", JSON.stringify(data));
+
+      // 🔥 ROLE FIX (IMPORTANT)
+      const role =
+        data.role ||
+        (email.includes("vendor") ? "VENDOR" : "CUSTOMER");
+
+      localStorage.setItem("role", role);
+
+      // 🔹 REDIRECT BASED ON ROLE
+      if (role === "VENDOR") {
+        window.location.href = "/vendor";
+      } else {
+        window.location.href = "/customer";
+      }
 
     } catch (err) {
       setError(err.message);
