@@ -76,7 +76,8 @@
 }
 
 /* ===== Button ===== */
-.login-box button {
+/* ===== ONLY SUBMIT BUTTON ===== */
+.login-box form button {
   width: 100%;
   height: 46px;
   border-radius: 16px;
