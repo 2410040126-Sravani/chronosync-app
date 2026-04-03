@@ -140,12 +140,13 @@ useEffect(() => {
         <div className="logo appTitle">
           CHRONOSYNC
           <div className="tagline">Smart Milk Delivery System</div>
-           {/* ✅ ADD THIS ONLY */}
-  <div style={{ fontSize: "13px", marginTop: "6px", color: "#666" }}>
-    Welcome, {user?.name || "User"} ({role})
-  </div>
+          
+  
 
         </div>
+        <div className="welcomeBar">
+  Welcome, {user?.name || "User"} ({role})
+</div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
   <div className="notifWrap">

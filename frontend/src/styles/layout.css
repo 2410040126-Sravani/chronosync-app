@@ -246,3 +246,13 @@
   align-items: center;
   justify-content: center;
 }
+.welcomeBar {
+  margin: 10px 20px;
+  padding: 12px 16px;
+  background: #f4f7ff;
+  border-radius: 12px;
+
+  font-size: 18px;     /* bigger */
+  font-weight: 700;    /* bold */
+  color: #2f66ff;
+}

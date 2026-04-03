@@ -5,18 +5,14 @@ import { getSubscription, updateQty as updateQtyApi } from "../api/subscriptionA
 export default function CustomerDashboard() {
   const role = localStorage.getItem("role");
 
+  const stored = localStorage.getItem("user");
+  const user = stored ? JSON.parse(stored) : null;
+  const customerId = user?.id;
+  
 if (role !== "CUSTOMER") {
   return <div>Please login as customer</div>;
 }
-const [customerId, setCustomerId] = useState(null);
 
-useEffect(() => {
-  const stored = localStorage.getItem("user");
-  const user = stored ? JSON.parse(stored) : null;
-
-  const id = user?.id || user?.customerId;
-  setCustomerId(id);
-}, []);
 
 
   const [loading, setLoading] = useState(true);
@@ -72,12 +68,9 @@ const today = (() => {
       setLoading(false);
     }
   }
-
 useEffect(() => {
-  if (customerId) {
-    loadAll();
-  }
-}, [customerId]);
+  loadAll();
+}, []);
 
   const qty = subscription?.qtyLitres ?? subscription?.qty ?? 0;
   const status = subscription?.status ?? "—";
