@@ -34,12 +34,16 @@ function Login() {
   localStorage.setItem("user", JSON.stringify(fakeUser));
   localStorage.setItem("role", fakeUser.role);
 
+  console.log("Login success:", fakeUser);
   // redirect
+ // 🔥 smooth redirect (important fix)
+setTimeout(() => {
   if (fakeUser.role === "VENDOR") {
     window.location.href = "/vendor";
   } else {
     window.location.href = "/customer";
   }
+}, 300);
 
 } catch (err) {
   setError(err.message);
