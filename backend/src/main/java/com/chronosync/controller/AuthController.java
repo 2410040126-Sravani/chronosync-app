@@ -44,7 +44,9 @@ public class AuthController {
 
         // Encode password and save user
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRole("USER");
+        if (user.getRole() == null || user.getRole().isEmpty()) {
+            user.setRole("CUSTOMER"); // default fallback
+        }
         User savedUser = userRepository.save(user);
 
         // Generate JWT token
