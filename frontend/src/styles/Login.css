@@ -10,7 +10,7 @@
 }
 
 /* ===== Card ===== */
-.login-box {
+.login-box form > button {
   width: 360px;
   padding: 36px 28px;
   border-radius: 22px;
