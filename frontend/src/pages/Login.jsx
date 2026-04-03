@@ -7,7 +7,7 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [role, setRole] = useState(""); // ✅ NEW
+  const [role, setRole] = useState(""); // ✅ role
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -20,7 +20,6 @@ function Login() {
       let url = `${API_BASE}/auth/`;
       let body = { email, password };
 
-      // 🔹 LOGIN / REGISTER
       if (isLogin) {
         url += "login";
       } else {
@@ -30,7 +29,7 @@ function Login() {
           throw new Error("Please select a role");
         }
 
-        body = { ...body, name, role }; // ✅ use selected role
+        body = { ...body, name, role };
       }
 
       const response = await fetch(url, {
@@ -46,12 +45,10 @@ function Login() {
 
       try {
         data = JSON.parse(text);
-        console.log("LOGIN RESPONSE:", data);
       } catch {
         data = text;
       }
 
-      // 🔹 ERROR HANDLING
       if (!response.ok) {
         let errorMsg = "Invalid email or password";
 
@@ -68,16 +65,12 @@ function Login() {
         throw new Error("Login failed");
       }
 
-      // 🔹 STORE DATA
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data));
 
-      // ✅ USE BACKEND ROLE (NO GUESSING)
       const finalRole = data.role || role;
-
       localStorage.setItem("role", finalRole);
 
-      // 🔹 REDIRECT
       if (finalRole === "VENDOR") {
         window.location.href = "/vendor";
       } else {
@@ -113,16 +106,50 @@ function Login() {
                 required
               />
 
-              {/* ✅ ROLE DROPDOWN */}
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                required
-              >
-                <option value="">Select Role</option>
-                <option value="CUSTOMER">Customer</option>
-                <option value="VENDOR">Vendor</option>
-              </select>
+              {/* 🔥 NEW BIG ROLE BUTTONS */}
+              <div style={{ marginTop: "15px" }}>
+                <label style={{ fontWeight: "600", marginBottom: "6px", display: "block" }}>
+                  Select Role
+                </label>
+
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <button
+                    type="button"
+                    onClick={() => setRole("CUSTOMER")}
+                    style={{
+                      flex: 1,
+                      padding: "14px",
+                      fontSize: "16px",
+                      borderRadius: "12px",
+                      border: "none",
+                      cursor: "pointer",
+                      background: role === "CUSTOMER" ? "#4f7cff" : "#e5e7eb",
+                      color: role === "CUSTOMER" ? "white" : "#333",
+                      fontWeight: "600"
+                    }}
+                  >
+                    Customer
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setRole("VENDOR")}
+                    style={{
+                      flex: 1,
+                      padding: "14px",
+                      fontSize: "16px",
+                      borderRadius: "12px",
+                      border: "none",
+                      cursor: "pointer",
+                      background: role === "VENDOR" ? "#4f7cff" : "#e5e7eb",
+                      color: role === "VENDOR" ? "white" : "#333",
+                      fontWeight: "600"
+                    }}
+                  >
+                    Vendor
+                  </button>
+                </div>
+              </div>
             </>
           )}
 
