@@ -1,1 +1,1 @@
-export const API_BASE = "https://chronosync-docker.onrender.com";
+export const API_BASE = "https://chronosync-docker.onrender.com/api";
