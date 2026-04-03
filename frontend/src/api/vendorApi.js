@@ -43,11 +43,17 @@ export async function getChangeAlerts(vendorId) {
 
   return readJsonSafe(res, "Failed to load change alerts");
 }
-
 export async function getCustomers(vendorId) {
-  const res = await fetch(`${API_BASE}/vendor/${vendorId}/customers`, {
-    headers: getAuthHeaders(),
-  });
+  const token = localStorage.getItem("token");
 
-  return readJsonSafe(res, "Failed to load customers");
+  const res = await fetch(
+    `https://chronosync-docker.onrender.com/api/vendor/${vendorId}/customers`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return await res.json();
 }

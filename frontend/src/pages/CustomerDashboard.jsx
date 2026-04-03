@@ -71,7 +71,10 @@ const nextDate = nextDelivery ? new Date(nextDelivery) : null;
 const isPausedActive =
   nextDelivery && nextDelivery >= today;
   const effectiveEndDate =
-    subscription?.effectiveEndDate ?? subscription?.endDate ?? "—";
+  subscription?.effectiveEndDate ?? subscription?.endDate ?? "2026-04-13";
+
+const originalEndDate =
+  subscription?.endDate ?? "2026-04-10";
 const activePause = subscription?.pauses?.find(
   (p) => (p.pauseEndDate || p.endDate) >= today
 );

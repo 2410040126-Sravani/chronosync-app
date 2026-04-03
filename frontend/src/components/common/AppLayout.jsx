@@ -1,6 +1,8 @@
+import { API_BASE } from "../../config/api";
 import { NavLink, useLocation } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import "../../styles/layout.css";
+
 
 const STORAGE_KEY = "chronosync_read_activity_ids";
 
@@ -24,17 +26,22 @@ export default function AppLayout({ children }) {
   const [notifications, setNotifications] = useState([]);
   async function loadNotifications() {
   try {
-    const user = JSON.parse(localStorage.getItem("user"));
+   const rawUser = localStorage.getItem("user");
+const user = rawUser ? JSON.parse(rawUser) : null;
     const vendorId = user?.id;
+    if (!vendorId) {
+  console.log("Vendor not logged in");
+  return;
+}
 
-    const resCustomers = await fetch(`http://localhost:8082/api/vendor/${vendorId}/customers`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+const resCustomers = await fetch(`${API_BASE}/vendor/${vendorId}/customers`, { 
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
     });
 
     const customers = await resCustomers.json();
     const customerIds = customers.map(c => c.id);
 
-    const res = await fetch("http://localhost:8082/api/audit/vendor", {
+   const res = await fetch(`${API_BASE}/audit/vendor`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -24,7 +24,7 @@ let url = `${API_BASE}/auth/`;
         url += "login";
       } else {
         url += "register";
-        body = { ...body, name, role: "CUSTOMER" };
+        body = { ...body, name, role: "VENDOR" };
       }
 
       const response = await fetch(url, {
@@ -57,11 +57,20 @@ if (!response.ok) {
 
   throw new Error(errorMsg);
 }
-
+if (!data.token) {
+  throw new Error("Login failed");
+}
       localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      localStorage.setItem("role", data.user?.role);
-      window.location.href = "/customer";
+    localStorage.setItem("user", JSON.stringify({
+  ...data,
+  role: "VENDOR"
+}));
+localStorage.setItem("role", data.role);
+if (data.role === "VENDOR" || data.role === "USER") {
+    window.location.href = "/vendor";
+} else {
+  window.location.href = "/customer";
+}
 
     } catch (err) {
       setError(err.message);

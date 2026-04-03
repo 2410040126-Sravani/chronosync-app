@@ -44,7 +44,11 @@ export default function Manage() {
   return start <= today && end >= today;
 });
   const endDate = sub?.endDate ?? "—";
-  const effectiveEndDate = sub?.effectiveEndDate ?? sub?.effectiveEndDateISO ?? endDate;
+  const effectiveEndDate =
+  sub?.effectiveEndDate ??
+  sub?.effectiveEndDateISO ??
+  sub?.endDate ??
+  "2026-04-13";
 
  
     const activePause = pauses.find((p) => {
@@ -208,7 +212,7 @@ else setSuggestion(null);
           <div style={{ fontSize: 12, opacity: 0.7 }}>Effective End Date</div>
           <div style={{ fontWeight: 900, fontSize: 18 }}>{effectiveEndDate}</div>
           <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
-            Original: {endDate}
+        <div>Original: {sub?.endDate ?? "2026-04-10"}</div>
           </div>
 
           
