@@ -11,48 +11,52 @@ function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
+  setLoading(true);
 
-   try {
-  // ⚡ INSTANT LOGIN (NO BACKEND DELAY)
+  try {
+    const endpoint = isLogin ? "/auth/login" : "/auth/register";
 
-  if (!isLogin && !role) {
-    throw new Error("Please select a role");
-  }
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        password,
+        name,
+        role,
+      }),
+    });
 
-  localStorage.clear();
-
-  const fakeUser = {
-    id: 1,
-    name: name || "User",
-    role: role || "CUSTOMER"
-  };
-
-  localStorage.setItem("user", JSON.stringify(fakeUser));
-  localStorage.setItem("role", fakeUser.role);
-
-  console.log("Login success:", fakeUser);
-  // redirect
- // 🔥 smooth redirect (important fix)
-setTimeout(() => {
-  if (fakeUser.role === "VENDOR") {
-    window.location.href = "/vendor";
-  } else {
-    window.location.href = "/customer";
-  }
-}, 300);
-
-} catch (err) {
-  setError(err.message);
-}
-    finally {
-      setLoading(false);
+    if (!res.ok) {
+      throw new Error("Invalid credentials");
     }
-  };
 
+    const data = await res.json();
+
+    // store real user
+    localStorage.setItem("user", JSON.stringify(data));
+    localStorage.setItem("role", data.role);
+
+    console.log("Login success:", data);
+
+    // redirect
+    if (data.role === "VENDOR") {
+      window.location.href = "/vendor";
+    } else {
+      window.location.href = "/customer";
+    }
+
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <div className="login-container">
       <div className="login-box">
