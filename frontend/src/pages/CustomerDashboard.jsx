@@ -34,11 +34,12 @@ const today = (() => {
     const text = await res.text().catch(() => "");
     return text ? JSON.parse(text) : null;
   }
+async function loadSubscription() {
+  if (!customerId) return;   // 🔥 prevent undefined call
 
-  async function loadSubscription() {
-    const data = await getSubscription(customerId);
-    setSubscription(data ?? null);
-  }
+  const data = await getSubscription(customerId);
+  setSubscription(data ?? null);
+}
 
 
    async function updateQty(value) {
@@ -71,9 +72,10 @@ const today = (() => {
     }
   }
 useEffect(() => {
-  loadAll();
-}, []);
-
+  if (customerId) {
+    loadAll();
+  }
+}, [customerId]);
   const qty = subscription?.qtyLitres ?? subscription?.qty ?? 0;
   const status = subscription?.status ?? "—";
   const nextDelivery = subscription?.nextDeliveryDate ?? subscription?.nextDelivery ?? "—";

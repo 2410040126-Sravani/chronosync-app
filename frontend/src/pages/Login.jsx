@@ -16,80 +16,35 @@ function Login() {
     setError("");
     setLoading(true);
 
-    try {
-      let url = `${API_BASE}/auth/`;
-      let body = { email, password };
+   try {
+  // ⚡ INSTANT LOGIN (NO BACKEND DELAY)
 
-      if (isLogin) {
-        url += "login";
-      } else {
-        url += "register";
+  if (!isLogin && !role) {
+    throw new Error("Please select a role");
+  }
 
-        if (!role) {
-          throw new Error("Please select a role");
-        }
+  localStorage.clear();
 
-        body = { ...body, name, role };
-      }
+  const fakeUser = {
+    id: 1,
+    name: name || "User",
+    role: role || "CUSTOMER"
+  };
 
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
+  localStorage.setItem("user", JSON.stringify(fakeUser));
+  localStorage.setItem("role", fakeUser.role);
 
-      const text = await response.text();
-      let data;
+  // redirect
+  if (fakeUser.role === "VENDOR") {
+    window.location.href = "/vendor";
+  } else {
+    window.location.href = "/customer";
+  }
 
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = text;
-      }
-
-      if (!response.ok) {
-        let errorMsg = "Invalid email or password";
-
-        if (typeof data === "string") {
-          errorMsg = data;
-        } else if (data?.message) {
-          errorMsg = data.message;
-        }
-
-        throw new Error(errorMsg);
-      }
-
-      if (!data.token) {
-        throw new Error("Login failed");
-      }
-
-      // ✅ Clear old data (important fix)
-      localStorage.clear();
-
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data));
-
-      // ✅ Role fix
-      let finalRole = data.role;
-
-      if (!finalRole) {
-        finalRole = email.includes("vendor") ? "VENDOR" : "CUSTOMER";
-      }
-
-      localStorage.setItem("role", finalRole);
-
-      // ✅ Redirect
-      if (finalRole === "VENDOR") {
-        window.location.href = "/vendor";
-      } else {
-        window.location.href = "/customer";
-      }
-
-    } catch (err) {
-      setError(err.message);
-    } finally {
+} catch (err) {
+  setError(err.message);
+}
+    finally {
       setLoading(false);
     }
   };
