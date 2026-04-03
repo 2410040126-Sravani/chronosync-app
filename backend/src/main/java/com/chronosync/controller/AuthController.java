@@ -15,9 +15,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "https://chronosync-ghm7ma5pu-2410040126-sravanis-projects.vercel.app")
+@CrossOrigin(origins = "*") // ✅ allow all (fix CORS completely)
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -35,68 +37,78 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
     }
 
+    // ================= REGISTER =================
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User user) {
-        // Check if email already exists
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+    public ResponseEntity<?> register(@RequestBody Map<String, Object> body) {
+
+        String email = (String) body.get("email");
+        String password = (String) body.get("password");
+        String name = (String) body.get("name");
+        String role = (String) body.get("role");
+
+        // validation
+        if (email == null || password == null) {
+            return ResponseEntity.badRequest().body("Missing email or password");
+        }
+
+        // check existing
+        if (userRepository.findByEmail(email).isPresent()) {
             return ResponseEntity.badRequest().body("Email already exists");
         }
 
-        // Encode password and save user
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        if (user.getRole() == null || user.getRole().isEmpty()) {
-            user.setRole("CUSTOMER"); // default fallback
-        }
+        // create user
+        User user = new User();
+        user.setEmail(email);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setName(name);
+        user.setRole(role != null ? role : "CUSTOMER");
+
         User savedUser = userRepository.save(user);
 
-        // Generate JWT token
+        // generate token
         String token = jwtUtil.generateToken(savedUser.getEmail(), savedUser.getRole());
 
-        // Return JSON response
+        // response
         LoginResponse response = new LoginResponse(
-            token,
-            savedUser.getRole(),
-            savedUser.getId(),
-            savedUser.getName()
+                token,
+                savedUser.getRole(),
+                savedUser.getId(),
+                savedUser.getName()
         );
 
         return ResponseEntity.ok(response);
     }
 
+    // ================= LOGIN =================
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
-            // Authenticate the user
             Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                    request.getEmail(),
-                    request.getPassword()
-                )
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
             );
 
-            // Get user details
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            
-            // Find the user to get additional info
+
             User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-            
-            // Generate JWT token
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
             String token = jwtUtil.generateToken(userDetails.getUsername(), user.getRole());
-            
-            // Return response
+
             LoginResponse response = new LoginResponse(
-                token,
-                user.getRole(),
-                user.getId(),
-                user.getName()
+                    token,
+                    user.getRole(),
+                    user.getId(),
+                    user.getName()
             );
-            
+
             return ResponseEntity.ok(response);
-            
+
         } catch (AuthenticationException e) {
-        	return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-        		    .body(new LoginResponse(null, "ERROR", null, "Invalid email or password"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid email or password"); // ✅ simpler response
         }
     }
 }

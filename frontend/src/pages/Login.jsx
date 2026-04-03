@@ -33,9 +33,10 @@ console.log({ email, password, name, role });
       }),
     });
 
-    if (!res.ok) {
-      throw new Error("Invalid credentials");
-    }
+   if (!res.ok) {
+  const msg = await res.text();
+  throw new Error(msg);
+}
 
     const data = await res.json();
 
