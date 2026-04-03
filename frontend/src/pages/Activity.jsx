@@ -39,15 +39,13 @@ export default function Activity() {
   const customerId = 1;
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [showAll, setShowAll] = useState(false);
 
   async function loadActivity(isRefresh = false) {
     try {
       setError("");
-      if (isRefresh) setRefreshing(true);
-      else setLoading(true);
+     setLoading(true);
 
      const data = await getAudit(customerId);
       setItems(Array.isArray(data) ? data : []);
@@ -56,7 +54,7 @@ export default function Activity() {
       setItems([]);
     } finally {
       setLoading(false);
-      setRefreshing(false);
+      
     }
   }
 
@@ -92,12 +90,11 @@ export default function Activity() {
 
       <div className="activityToolbar">
         <button
-          className="btn activityRefreshBtn"
-          onClick={() => loadActivity(true)}
-          disabled={refreshing}
-        >
-          {refreshing ? "Refreshing..." : "Refresh"}
-        </button>
+  className="btn activityRefreshBtn"
+  onClick={loadActivity}
+>
+  Refresh
+</button>
 
         <span className="activityCount">{items.length} event(s)</span>
       </div>
