@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { API_BASE } from "../config/api";
 import "../styles/Login.css";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
   const [isLogin, setIsLogin] = useState(true);
@@ -10,7 +11,7 @@ function Login() {
   const [role, setRole] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
+const navigate = useNavigate();
  const handleSubmit = async (e) => {
   console.log("LOGIN CLICKED");
   e.preventDefault();
@@ -18,7 +19,7 @@ function Login() {
   setLoading(true);
 
   try {
-    const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
+const endpoint = isLogin ? "/auth/login" : "/auth/register";
 console.log({ email, password, name, role });
     const res = await fetch(`${API_BASE}${endpoint}`, {
       method: "POST",
@@ -46,13 +47,11 @@ console.log({ email, password, name, role });
 
     console.log("Login success:", data);
 
-    // redirect
     if (data.role === "VENDOR") {
-      window.location.href = "/vendor";
-    } else {
-      window.location.href = "/customer";
-    }
-
+  navigate("/vendor");
+} else {
+  navigate("/customer");
+}
   } catch (err) {
     setError(err.message);
   } finally {
