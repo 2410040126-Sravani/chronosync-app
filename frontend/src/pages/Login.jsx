@@ -12,6 +12,7 @@ function Login() {
   const [loading, setLoading] = useState(false);
 
  const handleSubmit = async (e) => {
+  console.log("LOGIN CLICKED");
   e.preventDefault();
   setError("");
   setLoading(true);
