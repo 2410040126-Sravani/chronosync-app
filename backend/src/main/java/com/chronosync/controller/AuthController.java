@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "https://chronosync-ghm7ma5pu-2410040126-sravanis-projects.vercel.app")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
