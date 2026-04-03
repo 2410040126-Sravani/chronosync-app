@@ -7,6 +7,7 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [role, setRole] = useState(""); // ✅ NEW
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -24,7 +25,12 @@ function Login() {
         url += "login";
       } else {
         url += "register";
-        body = { ...body, name, role: "CUSTOMER" }; // default role
+
+        if (!role) {
+          throw new Error("Please select a role");
+        }
+
+        body = { ...body, name, role }; // ✅ use selected role
       }
 
       const response = await fetch(url, {
@@ -66,15 +72,13 @@ function Login() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data));
 
-      // 🔥 ROLE FIX (IMPORTANT)
-      const role =
-        data.role ||
-        (email.includes("vendor") ? "VENDOR" : "CUSTOMER");
+      // ✅ USE BACKEND ROLE (NO GUESSING)
+      const finalRole = data.role || role;
 
-      localStorage.setItem("role", role);
+      localStorage.setItem("role", finalRole);
 
-      // 🔹 REDIRECT BASED ON ROLE
-      if (role === "VENDOR") {
+      // 🔹 REDIRECT
+      if (finalRole === "VENDOR") {
         window.location.href = "/vendor";
       } else {
         window.location.href = "/customer";
@@ -100,13 +104,26 @@ function Login() {
 
         <form onSubmit={handleSubmit}>
           {!isLogin && (
-            <input
-              type="text"
-              placeholder="Full Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
+            <>
+              <input
+                type="text"
+                placeholder="Full Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+
+              {/* ✅ ROLE DROPDOWN */}
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                required
+              >
+                <option value="">Select Role</option>
+                <option value="CUSTOMER">Customer</option>
+                <option value="VENDOR">Vendor</option>
+              </select>
+            </>
           )}
 
           <input
