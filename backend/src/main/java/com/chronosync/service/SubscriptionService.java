@@ -53,9 +53,8 @@ public class SubscriptionService {
 
         LocalDate today = LocalDate.now();
 
-        // ✅ NEVER allow null endDate
         if (s.getEndDate() == null) {
-            s.setEndDate(LocalDate.now().plusDays(30));
+            s.setEndDate(today.plusDays(30));
         }
 
         // Auto resume after pause ends
@@ -66,14 +65,8 @@ public class SubscriptionService {
             s.setStatus("ACTIVE");
         }
 
-        // ✅ SAFE effective date (NO NULL)
-        LocalDate effective = calculateEffectiveEndDate(s);
-
-        if (effective == null) {
-            effective = s.getEndDate(); // fallback
-        }
-
-        s.setEffectiveEndDate(effective);
+        // 🔥 FIXED EFFECTIVE END DATE
+        s.setEffectiveEndDate(calculateEffectiveEndDate(s));
 
         return repo.save(s);
     }
@@ -129,14 +122,35 @@ public class SubscriptionService {
     }
 
     // ===============================
-    // RESUME
+    // RESUME (DEMO SIMPLE)
     // ===============================
     public Subscription resume(Long customerId) {
         Subscription s = getOrCreate(customerId);
 
+        if (s.getPauses() != null) {
+            s.getPauses().clear();
+        }
+
         s.setStatus("ACTIVE");
 
         log(customerId, "RESUME");
+
+        return repo.save(s);
+    }
+
+    // ===============================
+    // CLEAR PAUSES
+    // ===============================
+    public Subscription clearPauses(Long customerId) {
+        Subscription s = getOrCreate(customerId);
+
+        if (s.getPauses() != null) {
+            s.getPauses().clear();
+        }
+
+        s.setStatus("ACTIVE");
+
+        log(customerId, "CLEAR_PAUSES");
 
         return repo.save(s);
     }
@@ -157,13 +171,12 @@ public class SubscriptionService {
     }
 
     // ===============================
-    // ✅ FIXED CORE LOGIC (NO NULL EVER)
+    // 🔥 FIXED EFFECTIVE END DATE
     // ===============================
     private LocalDate calculateEffectiveEndDate(Subscription s) {
 
         LocalDate today = LocalDate.now();
 
-        // ✅ NEVER return null
         if (s.getEndDate() == null) {
             return today.plusDays(30);
         }
@@ -172,24 +185,28 @@ public class SubscriptionService {
             return s.getEndDate();
         }
 
-        long completedPauseDays = 0;
+        long totalPauseDays = 0;
 
         for (PausePeriod p : s.getPauses()) {
 
-            if (p.getStartDate() != null &&
-                p.getEndDate() != null &&
-                p.getEndDate().isBefore(today)) {
+            if (p.getStartDate() != null && p.getEndDate() != null) {
 
-                long days = ChronoUnit.DAYS.between(
-                        p.getStartDate(),
-                        p.getEndDate()
-                ) + 1;
+                LocalDate start = p.getStartDate();
+                LocalDate end = p.getEndDate();
 
-                completedPauseDays += days;
+                // 🔥 FIX: count ongoing pause also
+                if (end.isAfter(today)) {
+                    end = today;
+                }
+
+                if (!start.isAfter(today)) {
+                    long days = ChronoUnit.DAYS.between(start, end) + 1;
+                    totalPauseDays += days;
+                }
             }
         }
 
-        return s.getEndDate().plusDays(completedPauseDays);
+        return s.getEndDate().plusDays(totalPauseDays);
     }
 
     // ===============================
@@ -210,16 +227,16 @@ public class SubscriptionService {
             return "No customers available";
         }
 
-        long pausedCount = subs.stream()
+        long paused = subs.stream()
                 .filter(s -> "PAUSED".equalsIgnoreCase(s.getStatus()))
                 .count();
 
-        if (pausedCount == 0) {
-            return "No pause pattern found";
+        if (paused == 0) {
+            return "No pause activity";
         }
 
-        if (pausedCount > subs.size() / 2) {
-            return "⚠️ Many customers paused — check supply or pricing";
+        if (paused > subs.size() / 2) {
+            return "⚠️ Many customers paused — check service quality";
         }
 
         return "Normal pause activity";

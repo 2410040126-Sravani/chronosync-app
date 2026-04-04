@@ -85,7 +85,7 @@ const activePause = pauses.find((p) => {
       setLoading(true);
       await updateQty(subId, newQty);
       await loadAll();
-window.dispatchEvent(new Event("focus"));
+
     } catch (e) {
       setError(e?.message || "Qty update failed");
     } finally {
@@ -114,7 +114,7 @@ window.dispatchEvent(new Event("focus"));
       setEnd("");
       
       await loadAll();
-window.dispatchEvent(new Event("focus"));
+
     } catch (e) {
       setError(e?.message || "Pause failed");
       } finally {
@@ -131,7 +131,7 @@ window.dispatchEvent(new Event("focus"));
     await resumeSubscription(subId);
 
     await loadAll();
-    window.dispatchEvent(new Event("focus"));
+   
 
   } catch (e) {
     setError(e?.message || "Resume failed");
@@ -140,15 +140,14 @@ window.dispatchEvent(new Event("focus"));
   }
 }
   // If your backend doesn't have "clear pauses", we treat it as "resume + reload"
- async function onClearPauses() {
+async function onClearPauses() {
   try {
     setError("");
     setLoading(true);
 
-    await resumeSubscription(subId); // treat as clear
+    await clearPauses(subId); // ✅ FIXED (real API)
 
     await loadAll();
-    window.dispatchEvent(new Event("focus"));
 
   } catch (e) {
     setError(e?.message || "Clear pauses failed");
@@ -256,12 +255,16 @@ window.dispatchEvent(new Event("focus"));
           </button>
          <button
   className="btn"
-  disabled={loading || pauses.length === 0}
+disabled={loading || !isPausedActive}
   onClick={onResume}
 >
   Resume
 </button>
-          <button className="btn" disabled={loading} onClick={onClearPauses}>
+          <button
+  className="btn"
+  disabled={loading || pauses.length === 0}
+  onClick={onClearPauses}
+>
             Clear Pauses
           </button>
         </div>

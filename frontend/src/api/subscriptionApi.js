@@ -21,6 +21,9 @@ async function readJsonSafe(res, msg) {
   return text ? JSON.parse(text) : null;
 }
 
+// ===============================
+// GET
+// ===============================
 export async function getSubscription(id) {
   const res = await fetch(`${API_BASE}/subscriptions/${id}`, {
     headers: authHeaders(),
@@ -29,6 +32,9 @@ export async function getSubscription(id) {
   return readJsonSafe(res, "Failed to load subscription");
 }
 
+// ===============================
+// UPDATE QTY
+// ===============================
 export async function updateQty(id, qty) {
   const res = await fetch(
     `${API_BASE}/subscriptions/${id}/qty?value=${qty}`,
@@ -41,6 +47,9 @@ export async function updateQty(id, qty) {
   return readJsonSafe(res, "Qty update failed");
 }
 
+// ===============================
+// PAUSE
+// ===============================
 export async function pauseSubscription(id, start, end) {
   const res = await fetch(
     `${API_BASE}/subscriptions/${id}/pause?start=${start}&end=${end}`,
@@ -53,34 +62,40 @@ export async function pauseSubscription(id, start, end) {
   return readJsonSafe(res, "Pause failed");
 }
 
-// ✅ FIXED (PUT → POST)
+// ===============================
+// ✅ FIXED RESUME (PUT NOT POST)
+// ===============================
 export async function resumeSubscription(id) {
   const res = await fetch(`${API_BASE}/subscriptions/${id}/resume`, {
-    method: "POST",
+    method: "PUT", // 🔥 FIX
     headers: authHeaders(),
   });
 
   return readJsonSafe(res, "Resume failed");
 }
 
-// ✅ ADD THIS (you were missing clear API)
+// ===============================
+// ✅ FIXED CLEAR PAUSES (PUT)
+// ===============================
 export async function clearPauses(id) {
   const res = await fetch(`${API_BASE}/subscriptions/${id}/clear-pauses`, {
-    method: "POST",
+    method: "PUT", // 🔥 FIX
     headers: authHeaders(),
   });
 
   return readJsonSafe(res, "Clear pauses failed");
 }
 
-export async function getPauseSuggestion(id) {
+// ===============================
+// PAUSE SUGGESTION
+// ===============================
+export async function getPauseSuggestion(vendorId) {
   const res = await fetch(
-    `${API_BASE}/subscriptions/${id}/pause-suggestion`,
+    `${API_BASE}/subscriptions/vendor/${vendorId}/pause-suggestion`,
     {
       headers: authHeaders(),
     }
   );
 
-  if (!res.ok) return null;
-  return res.json();
+  return readJsonSafe(res, "Pause suggestion failed");
 }
