@@ -276,7 +276,12 @@ setLastSyncedAt(
           
 
           <div style={{ marginTop: 10, opacity: 0.9, lineHeight: 1.8 }}>
-            <div><b>Date:</b> {todayLive?.summaryDate ?? "—"}</div>
+            <div>
+  <b>Date:</b>{" "}
+  {todayLive?.summaryDate
+    ? new Date(todayLive.summaryDate).toLocaleDateString()
+    : new Date().toLocaleDateString()}
+</div>
             <div><b>Total Milk:</b> {todayLive?.totalLitres ?? 0} L</div>
             <div><b>Stops:</b> {todayLive?.stops ?? 0}</div>
             <div><b>Paused Customers:</b> {todayLive?.pausedCount ?? 0}</div>
@@ -426,7 +431,14 @@ setLastSyncedAt(
 
             {tomorrowStatus === "ok" && tomorrowData && (
               <div style={{ marginTop: 10, lineHeight: 1.8 }}>
-                <div><b>Date:</b> {tomorrowData?.date ?? "—"}</div>
+                <div>
+  <b>Date:</b>{" "}
+  {(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toLocaleDateString();
+  })()}
+</div>
                 <div><b>Total Milk:</b> {tomorrowData?.totalMilk ?? tomorrowData?.totalLitres ?? 0} L</div>
                 <div><b>Stops:</b> {tomorrowData?.stops ?? 0}</div>
                 <div><b>Paused:</b> {tomorrowData?.pausedCount ?? tomorrowData?.pausedCustomers?.length ?? 0}</div>
