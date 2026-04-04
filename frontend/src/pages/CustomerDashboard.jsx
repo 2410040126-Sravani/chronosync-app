@@ -7,10 +7,8 @@ export default function CustomerDashboard() {
 
   const stored = localStorage.getItem("user");
   const user = stored ? JSON.parse(stored) : null;
-const customerId = user?.customerId || user?.id || user?.userId;
-if (!customerId) {
-  return <div>Loading user...</div>;
-}  
+const subId = localStorage.getItem("subscriptionId");
+  
 if (role !== "CUSTOMER") {
   return <div>Please login as customer</div>;
 }
@@ -35,9 +33,8 @@ const today = (() => {
     return text ? JSON.parse(text) : null;
   }
 async function loadSubscription() {
-  if (!customerId) return;   // 🔥 prevent undefined call
-
-  const data = await getSubscription(customerId);
+if (!subId) return;
+const data = await getSubscription(subId);
   setSubscription(data ?? null);
 }
 
@@ -51,7 +48,7 @@ async function loadSubscription() {
       throw new Error("Quantity must be at least 1");
     }
 
-  const updated = await updateQtyApi(customerId, newQty);
+  const updated = await updateQtyApi(subId, newQty);
     setSubscription(updated ?? null);
 
     await loadSubscription();
@@ -75,13 +72,7 @@ useEffect(() => {
   loadAll(); // load once when page opens
 }, []);
 
-useEffect(() => {
-  const interval = setInterval(() => {
-    loadSubscription(); // auto refresh every 3 sec
-  }, 3000);
 
-  return () => clearInterval(interval);
-}, [customerId])
 useEffect(() => {
   const handleFocus = () => {
     loadAll();

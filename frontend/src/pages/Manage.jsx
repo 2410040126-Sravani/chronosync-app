@@ -9,7 +9,7 @@ import {
 } from "../api/subscriptionApi";
 
 export default function Manage() {
-  const subId = 1; // later we’ll make dropdown (no hardcode)
+const subId = localStorage.getItem("subscriptionId");
 
   const today = useMemo(() => {
   const d = new Date();

@@ -80,4 +80,5 @@ public class Subscription {
 
     public List<PausePeriod> getPauses() { return pauses; }
     public void setPauses(List<PausePeriod> pauses) { this.pauses = pauses; }
+	
 }

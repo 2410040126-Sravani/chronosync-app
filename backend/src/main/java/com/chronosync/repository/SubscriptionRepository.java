@@ -8,8 +8,10 @@ import java.util.Optional;
 
 public interface SubscriptionRepository extends JpaRepository<Subscription, Long> {
 
+    // 🔥 for customer dashboard
     Optional<Subscription> findByCustomerId(Long customerId);
 
-    // ✅ ADD THIS LINE (THIS IS YOUR ERROR FIX)
+    // 🔥 for vendor dashboard
     List<Subscription> findByVendorId(Long vendorId);
+
 }

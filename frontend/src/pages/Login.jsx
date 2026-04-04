@@ -45,6 +45,7 @@ console.log({ email, password, name, role });
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(data));
     localStorage.setItem("role", data.role);
+    localStorage.setItem("subscriptionId", data.subscriptionId);
 console.log("TOKEN:", data.token);
     console.log("Login success:", data);
 

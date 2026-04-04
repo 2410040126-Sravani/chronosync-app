@@ -3,8 +3,11 @@ package com.chronosync.controller;
 import com.chronosync.dto.LoginRequest;
 import com.chronosync.dto.LoginResponse;
 import com.chronosync.model.User;
+import com.chronosync.model.Subscription;
 import com.chronosync.repository.UserRepository;
+import com.chronosync.repository.SubscriptionRepository;
 import com.chronosync.security.JwtUtil;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,22 +22,25 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*") // ✅ allow all (fix CORS completely)
+@CrossOrigin(origins = "*")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SubscriptionRepository subscriptionRepository;
 
     public AuthController(AuthenticationManager authenticationManager,
                           JwtUtil jwtUtil,
                           UserRepository userRepository,
-                          PasswordEncoder passwordEncoder) {
+                          PasswordEncoder passwordEncoder,
+                          SubscriptionRepository subscriptionRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.subscriptionRepository = subscriptionRepository;
     }
 
     // ================= REGISTER =================
@@ -46,17 +52,15 @@ public class AuthController {
         String name = (String) body.get("name");
         String role = (String) body.get("role");
 
-        // validation
         if (email == null || password == null) {
             return ResponseEntity.badRequest().body("Missing email or password");
         }
 
-        // check existing
         if (userRepository.findByEmail(email).isPresent()) {
             return ResponseEntity.badRequest().body("Email already exists");
         }
 
-        // create user
+        // ✅ create user
         User user = new User();
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
@@ -65,15 +69,25 @@ public class AuthController {
 
         User savedUser = userRepository.save(user);
 
-        // generate token
+        // 🔥 create subscription
+        Subscription sub = new Subscription();
+        sub.setCustomerId(savedUser.getId());
+        sub.setCustomerName(savedUser.getName());
+        sub.setQtyLitres(1);
+        sub.setStatus("ACTIVE");
+
+        Subscription savedSub = subscriptionRepository.save(sub);
+
+        // 🔥 token
         String token = jwtUtil.generateToken(savedUser.getEmail(), savedUser.getRole());
 
-        // response
+        // 🔥 response
         LoginResponse response = new LoginResponse(
                 token,
                 savedUser.getRole(),
                 savedUser.getId(),
-                savedUser.getName()
+                savedUser.getName(),
+                savedSub.getId()
         );
 
         return ResponseEntity.ok(response);
@@ -95,20 +109,25 @@ public class AuthController {
             User user = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
+            // 🔥 FIXED: use customerId
+            Subscription sub = subscriptionRepository.findByCustomerId(user.getId())
+                    .orElseThrow(() -> new RuntimeException("Subscription not found"));
+
             String token = jwtUtil.generateToken(userDetails.getUsername(), user.getRole());
 
             LoginResponse response = new LoginResponse(
                     token,
                     user.getRole(),
                     user.getId(),
-                    user.getName()
+                    user.getName(),
+                    sub.getId()
             );
 
             return ResponseEntity.ok(response);
 
         } catch (AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid email or password"); // ✅ simpler response
+                    .body("Invalid email or password");
         }
     }
 }
