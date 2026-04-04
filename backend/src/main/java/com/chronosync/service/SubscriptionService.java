@@ -38,6 +38,7 @@ public class SubscriptionService {
                 s.setStatus("ACTIVE");
                 s.setQtyLitres(1);
                 s.setNextDeliveryDate(LocalDate.now());
+                s.setEndDate(LocalDate.now().plusDays(30));
                 return repo.save(s);
             });
     }
