@@ -168,13 +168,7 @@ await loadNotifications(customerList);
  useEffect(() => {
   loadAll();
 }, [vendorId]);
-useEffect(() => {
-  const interval = setInterval(() => {
-    loadAll();
-  }, 5000); // faster sync (5 sec)
 
-  return () => clearInterval(interval);
-}, []);
 
  useEffect(() => {
   const handleFocus = () => {
