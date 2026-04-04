@@ -42,9 +42,10 @@ console.log({ email, password, name, role });
     const data = await res.json();
 
     // store real user
+    localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(data));
     localStorage.setItem("role", data.role);
-
+console.log("TOKEN:", data.token);
     console.log("Login success:", data);
 
     if (data.role === "VENDOR") {
