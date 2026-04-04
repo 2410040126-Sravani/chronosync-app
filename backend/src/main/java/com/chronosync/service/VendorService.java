@@ -1,4 +1,3 @@
-
 package com.chronosync.service;
 
 import com.chronosync.dto.VendorTomorrowCustomerDTO;
@@ -27,7 +26,54 @@ public class VendorService {
     }
 
     // ===============================
-    // 🔥 SMART INSIGHT (NEW - REAL APP)
+    // ✅ TODAY SUMMARY (FIXED)
+    // ===============================
+    public VendorTodaySummaryDTO getTodaySummary(Long vendorId) {
+
+        LocalDate today = LocalDate.now();
+
+        List<Subscription> subs = subRepo.findByVendorId(vendorId);
+
+        int stops = 0;
+        int totalLitres = 0;
+        int pausedCount = 0;
+
+        for (Subscription s : subs) {
+
+            boolean isPausedToday = false;
+
+            if (s.getPauses() != null) {
+                for (var p : s.getPauses()) {
+                    if (!today.isBefore(p.getStartDate()) &&
+                        !today.isAfter(p.getEndDate())) {
+
+                        isPausedToday = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!isPausedToday) {
+                totalLitres += s.getQtyLitres();
+                stops++;
+            } else {
+                pausedCount++;
+            }
+        }
+
+        VendorTodaySummaryDTO dto = new VendorTodaySummaryDTO();
+        dto.setVendorId(vendorId);
+        dto.setDate(today);
+        dto.setStops(stops);
+        dto.setTotalLitres(totalLitres);
+        dto.setPausedCount(pausedCount);
+        dto.setGeneratedAt(LocalDateTime.now().toString());
+
+        return dto;
+    }
+
+    // ===============================
+    // 🔥 SMART INSIGHT
     // ===============================
     public String getSmartInsight(Long vendorId) {
 
@@ -58,6 +104,7 @@ public class VendorService {
 
         return "ℹ️ Normal activity";
     }
+
     // ===============================
     // ✅ PAUSE SUGGESTION
     // ===============================
@@ -196,7 +243,7 @@ public class VendorService {
     }
 
     // ===============================
-    // 🔥 ANALYTICS (UPGRADED)
+    // 🔥 ANALYTICS
     // ===============================
     public VendorAnalyticsDTO getAnalyticsPreferSnapshot(Long vendorId, String window) {
 
@@ -232,8 +279,6 @@ public class VendorService {
         dto.setDeliveredMilkL(totalMilk);
         dto.setMilkSavedL(pausedCount * 2);
         dto.setComputedAt(LocalDateTime.now());
-        
-        // 🔥 REAL SMART INSIGHT
         dto.setInsight(getSmartInsight(vendorId));
 
         return dto;
@@ -288,4 +333,3 @@ public class VendorService {
         return new com.chronosync.model.VendorSyncState();
     }
 }
-

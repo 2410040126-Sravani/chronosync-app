@@ -58,10 +58,7 @@ const subId = localStorage.getItem("subscriptionId");
       setError("");
       setLoading(true);
 
-      const [s, sug] = await Promise.all([
-        getSubscription(subId),
-         s = await getSubscription(subId)
-      ]);
+      const s = await getSubscription(subId);
 
       setSub(s);
 
@@ -152,7 +149,7 @@ window.dispatchEvent(new Event("focus"));
     <div className="glass pageCard">
       <h3 style={{ marginTop: 0 }}>Manage Subscription</h3>
       <p style={{ opacity: 0.8, marginTop: 6 }}>
-        Pause-aware automation: paused days extend your effective end date.
+       Pause temporarily stops deliveries and extends subscription after completion.
       </p>
 
       {error && (

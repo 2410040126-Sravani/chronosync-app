@@ -29,6 +29,11 @@ public class VendorController {
         return service.markSynced(vendorId);
     }
 
+    @GetMapping("/{vendorId}/today-summary")
+    public VendorTodaySummaryDTO todaySummary(@PathVariable Long vendorId) {
+        return service.getTodaySummary(vendorId);
+    }
+    
     @GetMapping("/{vendorId}/analytics")
     public VendorAnalyticsDTO analytics(@PathVariable Long vendorId,
                                         @RequestParam(required = false) String window) {

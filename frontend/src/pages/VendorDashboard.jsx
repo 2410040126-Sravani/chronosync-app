@@ -366,9 +366,7 @@ setLastSyncedAt(
         {c.customerName || "Unknown"}
       </div>
 
-      <div style={{ opacity: 0.85 }}>
-        📍 {c.customerAddress || "Not Provided"}
-      </div>
+      
 
       <div style={{ marginTop: 6 }}>
         Qty: <b>{c.qtyLitres || 1} L</b>
@@ -445,7 +443,7 @@ setLastSyncedAt(
                         <div style={{ fontWeight: 800 }}>
                           {x.name}
                         </div>
-                        <div style={{ opacity: 0.85 }}>📍 {x.address}</div>
+                        
                         <div style={{ marginTop: 6 }}>
                           Qty: <b>{x.qty} L</b> | Status: <b>{x.status ?? "ACTIVE"}</b>
                         </div>

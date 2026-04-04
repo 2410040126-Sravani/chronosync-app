@@ -87,7 +87,11 @@ useEffect(() => {
   const todayDate = new Date(today);
 const nextDate = nextDelivery ? new Date(nextDelivery) : null;
 const isPausedActive =
-  nextDelivery && nextDelivery >= today;
+  subscription?.pauses?.some(p => {
+    const start = p.pauseStartDate || p.startDate;
+    const end = p.pauseEndDate || p.endDate;
+    return start <= today && end >= today;
+  }) || false;
   const effectiveEndDate =
   subscription?.effectiveEndDate ?? subscription?.endDate ;
 
@@ -140,7 +144,9 @@ const activePause = subscription?.pauses?.find(
 </div>
         <div className="kpi">
   <div className="kLabel">Status</div>
-  <div className="kValue">{status || "—"}</div>
+  <div className="kValue">
+  {isPausedActive ? "PAUSED" : "ACTIVE"}
+</div>
 
 
 <div style={{ marginTop: 6, fontWeight: 700 }}>
@@ -161,7 +167,7 @@ const activePause = subscription?.pauses?.find(
     : "Not available"}
 </div>
           <div style={{ marginTop: 6, opacity: 0.7 }}>
-            (Auto-extended during pauses)
+            (Extended after completed pauses)
           </div>
         </div>
       </div>

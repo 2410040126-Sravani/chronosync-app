@@ -24,7 +24,6 @@ public class Subscription {
     @Column(name = "customer_address")
     private String customerAddress;
 
-    // ✅ FIXED mapping
     @Column(name = "qty_litres")
     private int qtyLitres;
 
@@ -35,7 +34,13 @@ public class Subscription {
     private LocalDate endDate;
 
     // ===============================
-    // 🔥 IMPORTANT (RESTORED)
+    // ✅ NEW FIELD (VERY IMPORTANT)
+    // ===============================
+    @Transient
+    private LocalDate effectiveEndDate;
+
+    // ===============================
+    // OTHER FIELDS
     // ===============================
     @Column(name = "vendor_id")
     private Long vendorId;
@@ -46,7 +51,12 @@ public class Subscription {
     // ===============================
     // RELATIONSHIP
     // ===============================
-    @OneToMany(mappedBy = "subscription", cascade = CascadeType.ALL, orphanRemoval = true,  fetch = FetchType.EAGER )
+    @OneToMany(
+        mappedBy = "subscription",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true,
+        fetch = FetchType.EAGER
+    )
     private List<PausePeriod> pauses;
 
     /* ---------------- Getters & Setters ---------------- */
@@ -72,6 +82,15 @@ public class Subscription {
     public LocalDate getEndDate() { return endDate; }
     public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
 
+    // ✅ EFFECTIVE END DATE (NEW)
+    public LocalDate getEffectiveEndDate() {
+        return effectiveEndDate;
+    }
+
+    public void setEffectiveEndDate(LocalDate effectiveEndDate) {
+        this.effectiveEndDate = effectiveEndDate;
+    }
+
     public Long getVendorId() { return vendorId; }
     public void setVendorId(Long vendorId) { this.vendorId = vendorId; }
 
@@ -80,5 +99,4 @@ public class Subscription {
 
     public List<PausePeriod> getPauses() { return pauses; }
     public void setPauses(List<PausePeriod> pauses) { this.pauses = pauses; }
-	
 }
