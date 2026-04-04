@@ -76,6 +76,14 @@ useEffect(() => {
     loadAll();
   }
 }, [customerId]);
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    loadSubscription(); // auto refresh every 3 sec
+  }, 3000);
+
+  return () => clearInterval(interval);
+}, [customerId])
   const qty = subscription?.qtyLitres ?? subscription?.qty ?? 0;
   const status = subscription?.status ?? "—";
   const nextDelivery = subscription?.nextDeliveryDate ?? subscription?.nextDelivery ?? "—";
