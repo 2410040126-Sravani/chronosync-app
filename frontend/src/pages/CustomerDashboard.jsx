@@ -7,7 +7,7 @@ export default function CustomerDashboard() {
 
   const stored = localStorage.getItem("user");
   const user = stored ? JSON.parse(stored) : null;
-const customerId = user?.customerId || user?.id;
+const customerId = user?.customerId || user?.id || user?.userId;
 if (!customerId) {
   return <div>Loading user...</div>;
 }  
