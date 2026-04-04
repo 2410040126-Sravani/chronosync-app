@@ -21,8 +21,8 @@ public class VendorTodaySummaryController {
         this.precomputeService = precomputeService;
     }
 
-    // ✅ FAST vendor dashboard API (reads precomputed snapshot)
-    @GetMapping("/{vendorId}/today-summary")
+    // ✅ FIXED: changed endpoint to avoid duplicate mapping
+    @GetMapping("/{vendorId}/today-summary-fast")
     public VendorTodaySummary todaySummary(@PathVariable Long vendorId) {
         return summaryRepo
                 .findByVendorIdAndSummaryDate(vendorId, LocalDate.now())

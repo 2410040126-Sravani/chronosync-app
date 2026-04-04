@@ -81,7 +81,10 @@ public class SubscriptionController {
     ) {
         return auditService.getRecent(customerId, limit);
     }
-
+    @GetMapping("/vendor/{vendorId}/pause-suggestion")
+    public String pauseSuggestion(@PathVariable Long vendorId) {
+        return service.getPauseSuggestion(vendorId);
+    }
     // ===============================
     // 🔥 GET ALL CUSTOMERS FOR VENDOR
     // ===============================
