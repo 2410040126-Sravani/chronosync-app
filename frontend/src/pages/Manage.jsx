@@ -25,8 +25,7 @@ const subId = localStorage.getItem("subscriptionId");
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
 
-  const [suggestion, setSuggestion] = useState(null);
-  const [suggestionDismissed, setSuggestionDismissed] = useState(false);
+  
 
   // ---------- helpers: map backend fields safely ----------
   const qty = sub?.qty ?? sub?.qtyLitres ?? sub?.quantity ?? 0;
@@ -61,14 +60,12 @@ const subId = localStorage.getItem("subscriptionId");
 
       const [s, sug] = await Promise.all([
         getSubscription(subId),
-        getPauseSuggestion(subId),
+         s = await getSubscription(subId)
       ]);
 
       setSub(s);
 
-      // show suggestion only if OPEN and not dismissed
-      if (!suggestionDismissed && sug?.hasSuggestion) setSuggestion(sug);
-else setSuggestion(null);
+    
     } catch (e) {
       setError(e?.message || "Something went wrong");
     } finally {
@@ -148,30 +145,8 @@ window.dispatchEvent(new Event("focus"));
 
   
 
-  async function acceptSuggestion() {
-    try {
-      setError("");
-      setLoading(true);
 
-      // try to use suggestion dates if present
-      const s = suggestion || {};
-      const from = s.startDate || s.fromDate || today;
-      const to = s.endDate || s.toDate || from;
-
-      await pauseSubscription(subId, from, to);
-      setSuggestion(null);
-      setSuggestionDismissed(true);
-      await loadAll();
-    } catch (e) {
-      setError(e?.message || "Accept suggestion failed");
-      setLoading(false);
-    }
-  }
-
-  function dismissSuggestion() {
-    setSuggestionDismissed(true);
-    setSuggestion(null);
-  }
+  
 
   return (
     <div className="glass pageCard">
@@ -213,12 +188,21 @@ window.dispatchEvent(new Event("focus"));
 </div>
         </div>
 
-        <div className="glass" style={{ padding: 12, borderRadius: 14 }}>
-          <div style={{ fontSize: 12, opacity: 0.7 }}>Effective End Date</div>
-          <div style={{ fontWeight: 900, fontSize: 18 }}>{effectiveEndDate}</div>
-          <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
-        <div>Original: {sub?.endDate}</div>
-          </div>
+      <div className="glass" style={{ padding: 12, borderRadius: 14 }}>
+  <div style={{ fontSize: 12, opacity: 0.7 }}>Effective End Date</div>
+
+  <div style={{ fontWeight: 900, fontSize: 18 }}>
+    {effectiveEndDate
+      ? new Date(effectiveEndDate).toLocaleDateString()
+      : "Loading..."}
+  </div>
+
+  <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
+    Original:{" "}
+    {sub?.endDate
+      ? new Date(sub.endDate).toLocaleDateString()
+      : "Not available"}
+  </div>
 
           
         </div>
@@ -292,39 +276,7 @@ window.dispatchEvent(new Event("focus"));
    
 </div>
 
-            {suggestion?.hasSuggestion && (
-        <div className="glass" style={{ padding: 12, borderRadius: 14, marginTop: 14 }}>
-          <div style={{ fontWeight: 900 }}>Pause suggestion</div>
-
-          <div style={{ opacity: 0.8, marginTop: 6 }}>
-            {suggestion.suggestion ?? "—"}
-          </div>
-
-          <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
-            {suggestion.reason && <span>{suggestion.reason}</span>}
-
-            {suggestion.suggestedDate && (
-              <span>{suggestion.reason ? " • " : ""}Date: {suggestion.suggestedDate}</span>
-            )}
-
-            {suggestion.confidence != null && (
-              <span>
-                {(suggestion.reason || suggestion.suggestedDate) ? " • " : ""}
-                Confidence: {suggestion.confidence}
-              </span>
-            )}
-          </div>
-
-          <div style={{ display: "flex", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
-            <button className="btn" disabled={loading} onClick={acceptSuggestion}>
-              Accept & Pause
-            </button>
-            <button className="btn" disabled={loading} onClick={dismissSuggestion}>
-              Dismiss
-            </button>
-          </div>
-        </div>
-      )}
+       
        <div style={{ marginTop: 18, fontSize: 12, opacity: 0.75 }}>
         Vendor change alerts are updated when the vendor clicks{" "}
         <b>Acknowledge Updates (Sync)</b> on the Vendor Dashboard.

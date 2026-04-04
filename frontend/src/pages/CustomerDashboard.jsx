@@ -152,7 +152,14 @@ const activePause = subscription?.pauses?.find(
 
         <div className="kpi">
           <div className="kLabel">Effective End Date</div>
-          <div className="kValue" style={{ fontSize: 22 }}>{effectiveEndDate}</div>
+          <div className="kValue" style={{ fontSize: 22 }}>{effectiveEndDate  ? new Date(effectiveEndDate).toLocaleDateString()
+    : "Loading..."}</div>
+    <div style={{ marginTop: 6, opacity: 0.7 }}>
+  Original:{" "}
+  {originalEndDate
+    ? new Date(originalEndDate).toLocaleDateString()
+    : "Not available"}
+</div>
           <div style={{ marginTop: 6, opacity: 0.7 }}>
             (Auto-extended during pauses)
           </div>
