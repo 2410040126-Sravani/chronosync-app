@@ -26,25 +26,29 @@ public class SubscriptionService {
     }
 
     // ===============================
-    // GET OR CREATE
+    // GET OR CREATE (🔥 FIXED)
     // ===============================
     public Subscription getOrCreate(Long customerId) {
-        return repo.findByCustomerId(customerId)
+
+        Subscription s = repo.findByCustomerId(customerId)
             .orElseGet(() -> {
-                Subscription s = new Subscription();
+                Subscription newSub = new Subscription();
 
-                s.setCustomerId(customerId);
+                newSub.setCustomerId(customerId);
+                newSub.setStatus("ACTIVE");
+                newSub.setQtyLitres(1);
+                newSub.setNextDeliveryDate(LocalDate.now());
+                newSub.setEndDate(LocalDate.now().plusDays(30));
 
-                // 🔥 IMPORTANT: CHANGE THIS TO YOUR VENDOR ID
-                s.setVendorId(24L); // 👉 replace with your vendor id
-
-                s.setStatus("ACTIVE");
-                s.setQtyLitres(1);
-                s.setNextDeliveryDate(LocalDate.now());
-                s.setEndDate(LocalDate.now().plusDays(30));
-
-                return repo.save(s);
+                return newSub;
             });
+
+        // 🔥 CRITICAL FIX: ALWAYS SET VENDOR ID
+        if (s.getVendorId() == null) {
+            s.setVendorId(24L); // your vendor ID
+        }
+
+        return repo.save(s);
     }
 
     // ===============================
@@ -163,14 +167,14 @@ public class SubscriptionService {
     }
 
     // ===============================
-    // 🔥 GET ALL SUBSCRIPTIONS BY VENDOR
+    // GET ALL SUBSCRIPTIONS BY VENDOR
     // ===============================
     public List<Subscription> getByVendorId(Long vendorId) {
         return repo.findByVendorId(vendorId);
     }
 
     // ===============================
-    // 🔥 PAUSE SUGGESTION (VENDOR)
+    // PAUSE SUGGESTION (VENDOR)
     // ===============================
     public String getPauseSuggestion(Long vendorId) {
 
