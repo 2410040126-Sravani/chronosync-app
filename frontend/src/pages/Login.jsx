@@ -48,11 +48,8 @@ console.log({ email, password, name, role });
 console.log("TOKEN:", data.token);
     console.log("Login success:", data);
 
-    if (data.role === "VENDOR") {
-  navigate("/vendor");
-} else {
-  navigate("/customer");
-}
+ window.location.href =
+  data.role === "VENDOR" ? "/vendor" : "/customer";
   } catch (err) {
     setError(err.message);
   } finally {
