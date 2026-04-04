@@ -53,6 +53,11 @@ public class SubscriptionService {
 
         LocalDate today = LocalDate.now();
 
+        // ✅ FIX: ensure endDate is never null
+        if (s.getEndDate() == null) {
+            s.setEndDate(LocalDate.now().plusDays(30));
+        }
+
         // Auto resume after pause ends
         if ("PAUSED".equals(s.getStatus()) &&
                 s.getNextDeliveryDate() != null &&
@@ -61,7 +66,7 @@ public class SubscriptionService {
             s.setStatus("ACTIVE");
         }
 
-        // ✅ Calculate effective end date
+        // ✅ Calculate effective end date safely
         LocalDate effective = calculateEffectiveEndDate(s);
         s.setEffectiveEndDate(effective);
 
@@ -152,10 +157,15 @@ public class SubscriptionService {
     }
 
     // ===============================
-    // ✅ CORE LOGIC: EFFECTIVE END DATE
+    // ✅ CORE LOGIC: EFFECTIVE END DATE (FIXED)
     // ===============================
     private LocalDate calculateEffectiveEndDate(Subscription s) {
         LocalDate today = LocalDate.now();
+
+        // ✅ FIX: prevent crash
+        if (s.getEndDate() == null) {
+            return null;
+        }
 
         if (s.getPauses() == null || s.getPauses().isEmpty()) {
             return s.getEndDate();
