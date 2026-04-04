@@ -5,26 +5,25 @@ import com.chronosync.model.Subscription;
 import com.chronosync.service.SubscriptionService;
 import com.chronosync.service.AuditService;
 import org.springframework.web.bind.annotation.*;
-import java.util.Map;
+
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/subscriptions")
 @CrossOrigin(origins = "*")
 public class SubscriptionController {
-	
+
     private final SubscriptionService service;
     private final AuditService auditService;
 
-    @GetMapping("/{customerId}/suggestion")
-	public String suggestion(@PathVariable Long customerId)
-	{ 
-    	return service.getPauseSuggestion(customerId);		}
+    // ===============================
+    // CONSTRUCTOR
+    // ===============================
     public SubscriptionController(SubscriptionService subscriptionService,
-            AuditService auditService) {
-    	this.service = subscriptionService;
-this.auditService = auditService;
-}
+                                  AuditService auditService) {
+        this.service = subscriptionService;
+        this.auditService = auditService;
+    }
 
     // ===============================
     // GET SUBSCRIPTION
@@ -38,7 +37,8 @@ this.auditService = auditService;
     // UPDATE QUANTITY
     // ===============================
     @PutMapping("/{customerId}/qty")
-    public Subscription qty(@PathVariable Long customerId, @RequestParam int value) {
+    public Subscription qty(@PathVariable Long customerId,
+                            @RequestParam int value) {
         return service.updateQty(customerId, value);
     }
 
@@ -66,16 +66,9 @@ this.auditService = auditService;
     // EXTEND
     // ===============================
     @PutMapping("/{customerId}/extend")
-    public Subscription extend(@PathVariable Long customerId, @RequestParam int days) {
+    public Subscription extend(@PathVariable Long customerId,
+                               @RequestParam int days) {
         return service.extend(customerId, days);
-    }
-
-    // ===============================
-    // PAUSE SUGGESTION (FIXED)
-    // ===============================
-    @GetMapping("/{customerId}/pause-suggestion")
-    public Map<String, String> pauseSuggestion(@PathVariable Long customerId) {
-        return Map.of("message", service.getPauseSuggestion(customerId));
     }
 
     // ===============================
@@ -89,5 +82,11 @@ this.auditService = auditService;
         return auditService.getRecent(customerId, limit);
     }
 
-
+    // ===============================
+    // 🔥 GET ALL CUSTOMERS FOR VENDOR
+    // ===============================
+    @GetMapping("/vendor/{vendorId}")
+    public List<Subscription> getByVendor(@PathVariable Long vendorId) {
+        return service.getByVendorId(vendorId);
+    }
 }

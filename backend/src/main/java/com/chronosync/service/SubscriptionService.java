@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,12 +32,17 @@ public class SubscriptionService {
         return repo.findByCustomerId(customerId)
             .orElseGet(() -> {
                 Subscription s = new Subscription();
+
                 s.setCustomerId(customerId);
-                s.setVendorId(1L);
+
+                // 🔥 IMPORTANT: CHANGE THIS TO YOUR VENDOR ID
+                s.setVendorId(24L); // 👉 replace with your vendor id
+
                 s.setStatus("ACTIVE");
                 s.setQtyLitres(1);
                 s.setNextDeliveryDate(LocalDate.now());
                 s.setEndDate(LocalDate.now().plusDays(30));
+
                 return repo.save(s);
             });
     }
@@ -52,11 +56,12 @@ public class SubscriptionService {
         LocalDate today = LocalDate.now();
 
         if (s.getStatus().equals("PAUSED") &&
-        	    s.getNextDeliveryDate() != null &&
-        	    !today.isBefore(s.getNextDeliveryDate())) {
+                s.getNextDeliveryDate() != null &&
+                !today.isBefore(s.getNextDeliveryDate())) {
 
-        	    s.setStatus("ACTIVE");
-        	}
+            s.setStatus("ACTIVE");
+        }
+
         return repo.save(s);
     }
 
@@ -65,33 +70,8 @@ public class SubscriptionService {
     // ===============================
     public Subscription updateQty(Long customerId, int value) {
         Subscription s = getOrCreate(customerId);
-
-        int oldQty = s.getQtyLitres();
         s.setQtyLitres(value);
-
-        System.out.println("[AUDIT] Customer " + customerId +
-                " → QTY CHANGE: " + oldQty + "L → " + value + "L");
-
         return repo.save(s);
-    }
-
-    // ===============================
-    // VALIDATION
-    // ===============================
-    public void validatePauseAllowed(Subscription subscription, LocalDate startDate) {
-        LocalDate today = LocalDate.now();
-
-        if (subscription.getNextDeliveryDate() != null &&
-        	    startDate.isEqual(subscription.getNextDeliveryDate())) {
-        	    
-        	    // instead of crashing → just move to next day
-        	    startDate = startDate.plusDays(1);
-        	}
-
-        if (subscription.getEndDate() != null &&
-            today.isAfter(subscription.getEndDate())) {
-            throw new RuntimeException("Subscription already ended");
-        }
     }
 
     // ===============================
@@ -100,31 +80,21 @@ public class SubscriptionService {
     public Subscription pause(Long customerId, String start, String end) {
 
         Subscription s = getOrCreate(customerId);
+
         if (s.getPauses() == null) {
-            s.setPauses(new java.util.ArrayList<>());
+            s.setPauses(new ArrayList<>());
         }
 
-        // ✅ FIXED DATE PARSING
         LocalDate startDate = LocalDate.parse(start);
         LocalDate endDate = LocalDate.parse(end);
         LocalDate today = LocalDate.now();
 
-        System.out.println("START: " + startDate);
-        System.out.println("END: " + endDate);
-        System.out.println("TODAY: " + today);
-
-        validatePauseAllowed(s, startDate);
-
         if (startDate.isBefore(today.minusDays(1))) {
-            throw new IllegalArgumentException("Start date cannot be in past");
+            throw new RuntimeException("Start date cannot be in past");
         }
 
         if (endDate.isBefore(startDate)) {
-            throw new IllegalArgumentException("End must be after start");
-        }
-
-        if (s.getPauses() == null) {
-            s.setPauses(new ArrayList<>());
+            throw new RuntimeException("End must be after start");
         }
 
         PausePeriod p = new PausePeriod();
@@ -141,7 +111,7 @@ public class SubscriptionService {
             s.setNextDeliveryDate(startDate);
         }
 
-        log(customerId, "PAUSE (" + start + " → " + end + ")");
+        log(customerId, "PAUSE");
 
         return repo.save(s);
     }
@@ -153,29 +123,18 @@ public class SubscriptionService {
         Subscription s = getOrCreate(customerId);
 
         List<PausePeriod> pauses = s.getPauses();
-        LocalDate today = LocalDate.now();
 
         if (pauses != null && !pauses.isEmpty()) {
 
-            long actualPausedDays = 0;
+            long pausedDays = 0;
 
             for (PausePeriod p : pauses) {
-
-                LocalDate start = p.getStartDate();
-                LocalDate end = p.getEndDate();
-
-                if (end.isBefore(today) || end.isEqual(today)) {
-                    long days = ChronoUnit.DAYS.between(start, end) + 1;
-                    actualPausedDays += days;
-                }
+                long days = ChronoUnit.DAYS.between(p.getStartDate(), p.getEndDate()) + 1;
+                pausedDays += days;
             }
 
-            if (actualPausedDays > 0) {
-                if (s.getEndDate() == null) {
-                    s.setEndDate(today);
-                }
-
-                s.setEndDate(s.getEndDate().plusDays(actualPausedDays));
+            if (pausedDays > 0) {
+                s.setEndDate(s.getEndDate().plusDays(pausedDays));
             }
 
             s.getPauses().clear();
@@ -194,31 +153,46 @@ public class SubscriptionService {
     public Subscription extend(Long customerId, int days) {
         Subscription s = getOrCreate(customerId);
 
-        if (s.getEndDate() == null) {
-            s.setEndDate(LocalDate.now());
+        if (s.getEndDate() != null) {
+            s.setEndDate(s.getEndDate().plusDays(days));
+        } else {
+            s.setEndDate(LocalDate.now().plusDays(days));
         }
-
-        s.setEndDate(s.getEndDate().plusDays(days));
-
-        log(customerId, "EXTEND → " + days + " days");
 
         return repo.save(s);
     }
 
     // ===============================
-    // SUGGESTION
+    // 🔥 GET ALL SUBSCRIPTIONS BY VENDOR
     // ===============================
-    public String getPauseSuggestion(Long customerId) {
-        Subscription s = getOrCreate(customerId);
+    public List<Subscription> getByVendorId(Long vendorId) {
+        return repo.findByVendorId(vendorId);
+    }
 
-        LocalDate today = LocalDate.now();
-        LocalDate next = s.getNextDeliveryDate();
+    // ===============================
+    // 🔥 PAUSE SUGGESTION (VENDOR)
+    // ===============================
+    public String getPauseSuggestion(Long vendorId) {
 
-        if (next != null && ChronoUnit.DAYS.between(today, next) <= 2) {
-            return "You may pause upcoming deliveries";
+        List<Subscription> subs = repo.findByVendorId(vendorId);
+
+        if (subs == null || subs.isEmpty()) {
+            return "No customers available";
         }
 
-        return "No pause needed";
+        long pausedCount = subs.stream()
+                .filter(s -> "PAUSED".equalsIgnoreCase(s.getStatus()))
+                .count();
+
+        if (pausedCount == 0) {
+            return "No pause pattern found";
+        }
+
+        if (pausedCount > subs.size() / 2) {
+            return "⚠️ Many customers paused — check supply or pricing";
+        }
+
+        return "Normal pause activity";
     }
 
     // ===============================
