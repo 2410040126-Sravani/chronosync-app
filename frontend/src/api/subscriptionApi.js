@@ -43,23 +43,34 @@ export async function updateQty(id, qty) {
 
 export async function pauseSubscription(id, start, end) {
   const res = await fetch(
-  `${API_BASE}/subscriptions/${id}/pause?start=${start}&end=${end}`,
-  {
-    method: "PUT",
-    headers: authHeaders(),
-  }
-);
+    `${API_BASE}/subscriptions/${id}/pause?start=${start}&end=${end}`,
+    {
+      method: "PUT",
+      headers: authHeaders(),
+    }
+  );
 
   return readJsonSafe(res, "Pause failed");
 }
 
+// ✅ FIXED (PUT → POST)
 export async function resumeSubscription(id) {
   const res = await fetch(`${API_BASE}/subscriptions/${id}/resume`, {
-    method: "PUT",
+    method: "POST",
     headers: authHeaders(),
   });
 
   return readJsonSafe(res, "Resume failed");
+}
+
+// ✅ ADD THIS (you were missing clear API)
+export async function clearPauses(id) {
+  const res = await fetch(`${API_BASE}/subscriptions/${id}/clear-pauses`, {
+    method: "POST",
+    headers: authHeaders(),
+  });
+
+  return readJsonSafe(res, "Clear pauses failed");
 }
 
 export async function getPauseSuggestion(id) {

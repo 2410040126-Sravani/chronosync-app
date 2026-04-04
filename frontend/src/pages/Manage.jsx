@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { clearPauses } from "../api/subscriptionApi";
 import {
   getSubscription,
   updateQty,
@@ -120,25 +121,39 @@ window.dispatchEvent(new Event("focus"));
     }
   }
 
-  async function onResume() {
-    try {
-      setError("");
-      setLoading(true);
-      await resumeSubscription(subId);
-      await loadAll();
-      
-window.dispatchEvent(new Event("focus"));
-   } catch (e) {
-  setError(e?.message || "Resume failed");
-} finally {
-  setLoading(false);
-}
-  }
+ async function onResume() {
+  try {
+    setError("");
+    setLoading(true);
 
-  // If your backend doesn't have "clear pauses", we treat it as "resume + reload"
-  async function onClearPauses() {
-    await onResume();
+    await resumeSubscription(subId);
+
+    await loadAll();
+    window.dispatchEvent(new Event("focus"));
+
+  } catch (e) {
+    setError(e?.message || "Resume failed");
+  } finally {
+    setLoading(false);
   }
+}
+  // If your backend doesn't have "clear pauses", we treat it as "resume + reload"
+ async function onClearPauses() {
+  try {
+    setError("");
+    setLoading(true);
+
+    await resumeSubscription(subId); // treat as clear
+
+    await loadAll();
+    window.dispatchEvent(new Event("focus"));
+
+  } catch (e) {
+    setError(e?.message || "Clear pauses failed");
+  } finally {
+    setLoading(false);
+  }
+}
 
   
 
@@ -175,8 +190,7 @@ window.dispatchEvent(new Event("focus"));
         <div className="glass" style={{ padding: 12, borderRadius: 14 }}>
           <div style={{ fontSize: 12, opacity: 0.7 }}>Status</div>
           <div style={{ fontWeight: 900, fontSize: 18 }}>
-  {sub?.status ?? (isPausedActive ? "PAUSED" : "ACTIVE")}
-</div>
+{isPausedActive ? "PAUSED" : "ACTIVE"}</div>
 
 <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
   {activePause
