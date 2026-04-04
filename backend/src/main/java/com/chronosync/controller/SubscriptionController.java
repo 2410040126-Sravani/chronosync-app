@@ -55,11 +55,19 @@ public class SubscriptionController {
     }
 
     // ===============================
-    // RESUME
+    // 🔥 RESUME (NOW CLEARS PAUSES)
     // ===============================
     @PutMapping("/{customerId}/resume")
     public Subscription resume(@PathVariable Long customerId) {
         return service.resume(customerId);
+    }
+
+    // ===============================
+    // 🔥 NEW: CLEAR PAUSES API
+    // ===============================
+    @PutMapping("/{customerId}/clear-pauses")
+    public Subscription clearPauses(@PathVariable Long customerId) {
+        return service.clearPauses(customerId);
     }
 
     // ===============================
@@ -81,12 +89,17 @@ public class SubscriptionController {
     ) {
         return auditService.getRecent(customerId, limit);
     }
+
+    // ===============================
+    // PAUSE SUGGESTION (VENDOR)
+    // ===============================
     @GetMapping("/vendor/{vendorId}/pause-suggestion")
     public String pauseSuggestion(@PathVariable Long vendorId) {
         return service.getPauseSuggestion(vendorId);
     }
+
     // ===============================
-    // 🔥 GET ALL CUSTOMERS FOR VENDOR
+    // GET ALL CUSTOMERS FOR VENDOR
     // ===============================
     @GetMapping("/vendor/{vendorId}")
     public List<Subscription> getByVendor(@PathVariable Long vendorId) {
