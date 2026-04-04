@@ -53,7 +53,7 @@ public class SubscriptionService {
 
         LocalDate today = LocalDate.now();
 
-        // ✅ FIX: ensure endDate is never null
+        // ✅ NEVER allow null endDate
         if (s.getEndDate() == null) {
             s.setEndDate(LocalDate.now().plusDays(30));
         }
@@ -66,8 +66,13 @@ public class SubscriptionService {
             s.setStatus("ACTIVE");
         }
 
-        // ✅ Calculate effective end date safely
+        // ✅ SAFE effective date (NO NULL)
         LocalDate effective = calculateEffectiveEndDate(s);
+
+        if (effective == null) {
+            effective = s.getEndDate(); // fallback
+        }
+
         s.setEffectiveEndDate(effective);
 
         return repo.save(s);
@@ -112,12 +117,10 @@ public class SubscriptionService {
 
         s.getPauses().add(p);
 
-        // Only pause if today is within range
         if (!today.isBefore(startDate) && !today.isAfter(endDate)) {
             s.setStatus("PAUSED");
         }
 
-        // Resume after pause ends
         s.setNextDeliveryDate(endDate.plusDays(1));
 
         log(customerId, "PAUSE");
@@ -131,9 +134,6 @@ public class SubscriptionService {
     public Subscription resume(Long customerId) {
         Subscription s = getOrCreate(customerId);
 
-        // DO NOT modify endDate
-        // DO NOT clear pauses
-
         s.setStatus("ACTIVE");
 
         log(customerId, "RESUME");
@@ -142,7 +142,7 @@ public class SubscriptionService {
     }
 
     // ===============================
-    // EXTEND (manual)
+    // EXTEND
     // ===============================
     public Subscription extend(Long customerId, int days) {
         Subscription s = getOrCreate(customerId);
@@ -157,14 +157,15 @@ public class SubscriptionService {
     }
 
     // ===============================
-    // ✅ CORE LOGIC: EFFECTIVE END DATE (FIXED)
+    // ✅ FIXED CORE LOGIC (NO NULL EVER)
     // ===============================
     private LocalDate calculateEffectiveEndDate(Subscription s) {
+
         LocalDate today = LocalDate.now();
 
-        // ✅ FIX: prevent crash
+        // ✅ NEVER return null
         if (s.getEndDate() == null) {
-            return null;
+            return today.plusDays(30);
         }
 
         if (s.getPauses() == null || s.getPauses().isEmpty()) {
@@ -174,7 +175,11 @@ public class SubscriptionService {
         long completedPauseDays = 0;
 
         for (PausePeriod p : s.getPauses()) {
-            if (p.getEndDate() != null && p.getEndDate().isBefore(today)) {
+
+            if (p.getStartDate() != null &&
+                p.getEndDate() != null &&
+                p.getEndDate().isBefore(today)) {
+
                 long days = ChronoUnit.DAYS.between(
                         p.getStartDate(),
                         p.getEndDate()
@@ -188,7 +193,7 @@ public class SubscriptionService {
     }
 
     // ===============================
-    // GET ALL SUBSCRIPTIONS BY VENDOR
+    // GET BY VENDOR
     // ===============================
     public List<Subscription> getByVendorId(Long vendorId) {
         return repo.findByVendorId(vendorId);
