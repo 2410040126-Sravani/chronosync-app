@@ -89,8 +89,8 @@ else setSuggestion(null);
       setError("");
       setLoading(true);
       await updateQty(subId, newQty);
-      const s = await getSubscription(subId);
-      setSub(s);
+      await loadAll();
+window.dispatchEvent(new Event("focus"));
     } catch (e) {
       setError(e?.message || "Qty update failed");
     } finally {
@@ -117,10 +117,14 @@ else setSuggestion(null);
       await pauseSubscription(subId, start, end);
       setStart("");
       setEnd("");
+      
       await loadAll();
+window.dispatchEvent(new Event("focus"));
     } catch (e) {
       setError(e?.message || "Pause failed");
-      setLoading(false);
+      } finally {
+  setLoading(false);
+      
     }
   }
 
@@ -130,10 +134,13 @@ else setSuggestion(null);
       setLoading(true);
       await resumeSubscription(subId);
       await loadAll();
-    } catch (e) {
-      setError(e?.message || "Resume failed");
-      setLoading(false);
-    }
+      
+window.dispatchEvent(new Event("focus"));
+   } catch (e) {
+  setError(e?.message || "Resume failed");
+} finally {
+  setLoading(false);
+}
   }
 
   // If your backend doesn't have "clear pauses", we treat it as "resume + reload"

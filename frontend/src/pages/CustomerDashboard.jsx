@@ -72,10 +72,8 @@ async function loadSubscription() {
     }
   }
 useEffect(() => {
-  if (customerId) {
-    loadAll();
-  }
-}, [customerId]);
+  loadAll(); // load once when page opens
+}, []);
 
 useEffect(() => {
   const interval = setInterval(() => {
@@ -84,6 +82,14 @@ useEffect(() => {
 
   return () => clearInterval(interval);
 }, [customerId])
+useEffect(() => {
+  const handleFocus = () => {
+    loadAll();
+  };
+
+  window.addEventListener("focus", handleFocus);
+  return () => window.removeEventListener("focus", handleFocus);
+}, []);
   const qty = subscription?.qtyLitres ?? subscription?.qty ?? 0;
   const status = subscription?.status ?? "—";
   const nextDelivery = subscription?.nextDeliveryDate ?? subscription?.nextDelivery ?? "—";

@@ -165,19 +165,25 @@ await loadNotifications(customerList);
 
   setLoading(false);
 }
-  useEffect(() => {
-  if (!vendorId) return;  
+ useEffect(() => {
   loadAll();
 }, [vendorId]);
-
-  useEffect(() => {
+useEffect(() => {
   const interval = setInterval(() => {
     loadAll();
-  }, 10000); // every 10 sec
+  }, 5000); // faster sync (5 sec)
 
   return () => clearInterval(interval);
 }, []);
 
+ useEffect(() => {
+  const handleFocus = () => {
+    loadAll();
+  };
+
+  window.addEventListener("focus", handleFocus);
+  return () => window.removeEventListener("focus", handleFocus);
+}, []);
   useEffect(() => {
     if (showTomorrow) loadTomorrow();
   }, [showTomorrow]);
