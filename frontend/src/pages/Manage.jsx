@@ -37,11 +37,12 @@ const subId = localStorage.getItem("subscriptionId");
     sub?.pauseWindows ??
     sub?.pauseRanges ??
     [];
-  const isPausedActive = pauses.some((p) => {
-  const start = p.startDate || p.pauseStartDate;
-  const end = p.endDate || p.pauseEndDate;
+ const isPausedActive = pauses.some((p) => {
+  const start = new Date(p.startDate || p.pauseStartDate);
+  const end = new Date(p.endDate || p.pauseEndDate);
+  const todayDate = new Date(today);
 
-  return start <= today && end >= today;
+  return start <= todayDate && end >= todayDate;
 });
   const endDate = sub?.endDate ?? "—";
   const effectiveEndDate =
@@ -49,9 +50,10 @@ const subId = localStorage.getItem("subscriptionId");
   sub?.effectiveEndDateISO ||
   sub?.endDate;
  
-    const activePause = pauses.find((p) => {
-  const end = p.endDate || p.pauseEndDate;
-  return end >= today;
+const activePause = pauses.find((p) => {
+  const end = new Date(p.endDate || p.pauseEndDate);
+  const todayDate = new Date(today);
+  return end >= todayDate;
 });
 
   async function loadAll() {
@@ -252,9 +254,13 @@ window.dispatchEvent(new Event("focus"));
           <button className="btn" disabled={loading} onClick={addPause}>
             Add Pause
           </button>
-          <button className="btn" disabled={loading} onClick={onResume}>
-            Resume
-          </button>
+         <button
+  className="btn"
+  disabled={loading || pauses.length === 0}
+  onClick={onResume}
+>
+  Resume
+</button>
           <button className="btn" disabled={loading} onClick={onClearPauses}>
             Clear Pauses
           </button>
