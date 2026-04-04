@@ -75,7 +75,7 @@ public class AuthController {
         sub.setCustomerName(savedUser.getName());
         sub.setQtyLitres(1);
         sub.setStatus("ACTIVE");
-
+sub.setEndDate(java.time.LocalDate.now().plusDays(30));
         Subscription savedSub = subscriptionRepository.save(sub);
 
         // 🔥 token
