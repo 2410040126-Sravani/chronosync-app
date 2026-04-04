@@ -45,11 +45,9 @@ const subId = localStorage.getItem("subscriptionId");
 });
   const endDate = sub?.endDate ?? "—";
   const effectiveEndDate =
-  sub?.effectiveEndDate ??
-  sub?.effectiveEndDateISO ??
-  sub?.endDate ??
-  "2026-04-13";
-
+  sub?.effectiveEndDate ||
+  sub?.effectiveEndDateISO ||
+  sub?.endDate;
  
     const activePause = pauses.find((p) => {
   const end = p.endDate || p.pauseEndDate;
@@ -219,7 +217,7 @@ window.dispatchEvent(new Event("focus"));
           <div style={{ fontSize: 12, opacity: 0.7 }}>Effective End Date</div>
           <div style={{ fontWeight: 900, fontSize: 18 }}>{effectiveEndDate}</div>
           <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
-        <div>Original: {sub?.endDate ?? "2026-04-10"}</div>
+        <div>Original: {sub?.endDate}</div>
           </div>
 
           
